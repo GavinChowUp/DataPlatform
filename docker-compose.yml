@@ -1,0 +1,25 @@
+version: "3.7"
+
+networks:
+  platform_net:
+    external: false
+    name: "platform_net"
+
+services:
+  mysql:
+    restart: always
+    image: mysql:5.7
+    volumes:
+      - ./env/mysql/my.cnf:/etc/my.cnf
+      - ./env/mysql/source:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: 'data_platform'
+      MYSQL_USER: 'platform'
+      MYSQL_PASSWORD: 'de2022'
+      MYSQL_ROOT_PASSWORD: 'de2022'
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    networks:
+      - platform_net
