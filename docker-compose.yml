@@ -6,20 +6,35 @@ networks:
     name: "platform_net"
 
 services:
-  mysql:
+  oltp-db:
     restart: always
-    image: mysql:5.7
+    image: mysql:latest
+    container_name: mysql
     volumes:
-      - ./env/mysql/my.cnf:/etc/my.cnf
-      - ./env/mysql/source:/docker-entrypoint-initdb.d
+      - ./env/mysql/init/:/docker-entrypoint-initdb.d/
+      - ./env/mysql/conf/:/etc/mysql/conf.d/
+#      - ./env/mysql/logs:/var/log/mysql
+#      - ./env/mysql/data:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: 'data_platform'
-      MYSQL_USER: 'platform'
-      MYSQL_PASSWORD: 'de2022'
-      MYSQL_ROOT_PASSWORD: 'de2022'
+      MYSQL_DATABASE: data_platform
+      MYSQL_USER: platform
+      MYSQL_PASSWORD: de2022
+      MYSQL_ROOT_PASSWORD: de2022
+      TZ: Asia/Shanghai
     ports:
       - "3306:3306"
     expose:
       - "3306"
     networks:
       - platform_net
+#    command:
+#      --character-set-server=utf8mb4
+#      --collation-server=utf8mb4_general_ci
+#      --explicit_defaults_for_timestamp=true
+
+
+#  flyway:
+#    image: flyway:latest
+#    container_name: flyway
+#    volumes:
+#      - ./flyway_scripts/ser
