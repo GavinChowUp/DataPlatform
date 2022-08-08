@@ -13,8 +13,8 @@ services:
     volumes:
       - ./env/mysql/init/:/docker-entrypoint-initdb.d/
       - ./env/mysql/conf/:/etc/mysql/conf.d/
-#      - ./env/mysql/logs:/var/log/mysql
-#      - ./env/mysql/data:/var/lib/mysql
+      - ./env/mysql/logs:/var/log/mysql
+      - ./env/mysql/data:/var/lib/mysql
     environment:
       MYSQL_DATABASE: data_platform
       MYSQL_USER: platform

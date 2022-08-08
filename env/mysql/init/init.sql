@@ -1,6 +1,6 @@
-#  grant all privileges on dbname.tablename to 'platform'@'%';
-#  grant all privileges on data_platform.* to   'platform'@'%';
-#  flush privileges ;
+  grant all privileges on dbname.tablename to 'platform'@'%';
+  grant all privileges on data_platform.* to   'platform'@'%';
+ flush privileges ;
 use data_platform;
 CREATE TABLE IF NOT EXISTS `tbl`
 (
