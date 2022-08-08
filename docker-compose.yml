@@ -11,30 +11,41 @@ services:
     image: mysql:latest
     container_name: mysql
     volumes:
-      - ./env/mysql/init/:/docker-entrypoint-initdb.d/
+      - ./env/mysql/init/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./env/mysql/conf/:/etc/mysql/conf.d/
-      - ./env/mysql/logs:/var/log/mysql
+      - ./env/mysql/logs:/logs
       - ./env/mysql/data:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: data_platform
-      MYSQL_USER: platform
-      MYSQL_PASSWORD: de2022
-      MYSQL_ROOT_PASSWORD: de2022
+      MYSQL_DATABASE: 'data_platform'
+      MYSQL_USER: 'platform'
+      MYSQL_PASSWORD: 'de2022'
+      MYSQL_ROOT_PASSWORD: 'de2022'
       TZ: Asia/Shanghai
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
     ports:
       - "3306:3306"
     expose:
       - "3306"
     networks:
       - platform_net
-#    command:
-#      --character-set-server=utf8mb4
-#      --collation-server=utf8mb4_general_ci
-#      --explicit_defaults_for_timestamp=true
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
 
-
-#  flyway:
-#    image: flyway:latest
-#    container_name: flyway
-#    volumes:
-#      - ./flyway_scripts/ser
+  flyway:
+    image: boxfuse/flyway:latest
+    container_name: flyway
+    command:
+      -url=jdbc:mysql://oltp-db:3306
+      -schemas=data_platform 
+      -user=platform 
+      -password=de2022
+      -connectRetries=60 migrate
+    networks:
+      - platform_net
+    volumes:
+      - ./env/flyway:/flyway/sql
+    restart: on-failure
+    depends_on:
+      - oltp-db
