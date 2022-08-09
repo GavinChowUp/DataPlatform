@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 networks:
   platform_net:
@@ -11,7 +11,7 @@ services:
     image: mysql:latest
     container_name: mysql
     volumes:
-      - ./env/mysql/init/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./env/mysql/init/:/docker-entrypoint-initdb.d/
       - ./env/mysql/conf/:/etc/mysql/conf.d/
       - ./env/mysql/logs:/logs
       - ./env/mysql/data:/var/lib/mysql
@@ -29,23 +29,28 @@ services:
     networks:
       - platform_net
     command:
+      --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
       --explicit_defaults_for_timestamp=true
 
+
   flyway:
-    image: boxfuse/flyway:latest
+    image: flyway/flyway:9.1.2
     container_name: flyway
+    volumes:
+      - ./env/flyway/sql/:/flyway/sql/
+      - ./env/flyway/drivers/mysql-connector-java-8.0.25.jar:/flyway/drivers/mysql-connector-java-8.0.25.jar
     command:
+      -user=root
+      -password=de2022
       -url=jdbc:mysql://oltp-db:3306
       -schemas=data_platform 
-      -user=platform 
-      -password=de2022
-      -connectRetries=60 migrate
+      -connectRetries=60 
+      -locations=./env/flyway/
+      -sqlMigrationSuffixes=.sql migrate
     networks:
       - platform_net
-    volumes:
-      - ./env/flyway:/flyway/sql
     restart: on-failure
     depends_on:
       - oltp-db
