@@ -10,11 +10,12 @@ services:
     restart: always
     image: mysql:latest
     container_name: mysql
+    privileged: true
     volumes:
       - ./env/mysql/init/:/docker-entrypoint-initdb.d/
       - ./env/mysql/conf/:/etc/mysql/conf.d/
       - ./env/mysql/logs:/logs
-      - ./env/mysql/data:/var/lib/mysql
+#      - ./env/mysql/data:/var/lib/mysql:rw
     environment:
       MYSQL_DATABASE: 'data_platform'
       MYSQL_USER: 'platform'
@@ -34,23 +35,24 @@ services:
       --collation-server=utf8mb4_general_ci
       --explicit_defaults_for_timestamp=true
 
-
   flyway:
-    image: flyway/flyway:9.1.2
+    image: flyway/flyway:9.1.3
     container_name: flyway
+    privileged: true
     volumes:
-      - ./env/flyway/sql/:/flyway/sql/
-      - ./env/flyway/drivers/mysql-connector-java-8.0.25.jar:/flyway/drivers/mysql-connector-java-8.0.25.jar
+      - ./env/flyway/sql:/flyway/sql
+      - ./env/flyway/drivers:/flyway/drivers
     command:
       -user=root
       -password=de2022
       -url=jdbc:mysql://oltp-db:3306
-      -schemas=data_platform 
-      -connectRetries=60 
-      -locations=./env/flyway/
+      -schemas=data_platform
+      -connectRetries=60
+      -baselineOnMigrate=true
       -sqlMigrationSuffixes=.sql migrate
     networks:
       - platform_net
     restart: on-failure
     depends_on:
       - oltp-db
+
