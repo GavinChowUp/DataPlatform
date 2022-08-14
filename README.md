@@ -22,6 +22,8 @@ colima start -m 4 --mount /Volumes/Work/Code/DataPlatform/:w # 替换成自己�
 docker-compose up -d
 ```
 
+https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#docker-compose-yaml
+
 ### Run the tests
 
 ## Deployment
