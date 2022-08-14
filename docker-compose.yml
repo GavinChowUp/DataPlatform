@@ -43,7 +43,7 @@ services:
       - ./env/flyway/sql:/flyway/sql
       - ./env/flyway/drivers:/flyway/drivers
     command:
-      -user=root
+      -user=platform
       -password=de2022
       -url=jdbc:mysql://oltp-db:3306
       -schemas=data_platform
