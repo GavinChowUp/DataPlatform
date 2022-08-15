@@ -21,9 +21,9 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
+    - ./env/airflow/dags:/opt/airflow/dags
+    - ./env/airflow/logs:/opt/airflow/logs
+    - ./env/airflow/plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -47,7 +47,7 @@ services:
       - ./env/mysql/init/:/docker-entrypoint-initdb.d/
       - ./env/mysql/conf/:/etc/mysql/conf.d/
       - ./env/mysql/logs:/logs
-#      - ./env/mysql/data:/var/lib/mysql:rw
+    #      - ./env/mysql/data:/var/lib/mysql:rw
     environment:
       MYSQL_DATABASE: 'data_platform'
       MYSQL_USER: 'platform'
@@ -67,7 +67,7 @@ services:
       --collation-server=utf8mb4_general_ci
       --explicit_defaults_for_timestamp=true
     healthcheck:
-      test:  mysql --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD -e 'SHOW DATABASES;' # healthcheck command "pg_isready", "-U", "airflow"]
+      test: mysql --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD -e 'SHOW DATABASES;' # healthcheck command "pg_isready", "-U", "airflow"]
       interval: 5s
       retries: 5
 
@@ -91,7 +91,7 @@ services:
     restart: on-failure
     depends_on:
       mysql:
-        condition: service_started
+        condition: service_healthy
 
   postgres:
     image: postgres:13
@@ -106,6 +106,13 @@ services:
       interval: 5s
       retries: 5
     restart: always
+    networks:
+      - platform_net
+    privileged: true
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
 
   redis:
     image: redis:latest
@@ -117,6 +124,12 @@ services:
       timeout: 30s
       retries: 50
     restart: always
+    networks:
+      - platform_net
+    privileged: true
+    ports:
+      - "6379:6379"
+
 
   airflow-webserver:
     <<: *airflow-common
@@ -132,7 +145,11 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
+    networks:
+      - platform_net
+    privileged: true
+
 
   airflow-scheduler:
     <<: *airflow-common
@@ -146,15 +163,18 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
+    networks:
+      - platform_net
+    privileged: true
+
 
   airflow-worker:
     <<: *airflow-common
     command: celery worker
     healthcheck:
       test:
-        - "CMD-SHELL"
-        - 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+        [ "CMD-SHELL" ,'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"' ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -167,7 +187,11 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
+    networks:
+      - platform_net
+    privileged: true
+
 
   airflow-triggerer:
     <<: *airflow-common
@@ -181,7 +205,11 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
+    networks:
+      - platform_net
+    privileged: true
+
 
   airflow-init:
     <<: *airflow-common
@@ -259,7 +287,11 @@ services:
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
-      - .:/sources
+      - ./env/airflow:/sources
+    networks:
+      - platform_net
+    privileged: true
+
 
   airflow-cli:
     <<: *airflow-common
@@ -273,6 +305,10 @@ services:
       - bash
       - -c
       - airflow
+    networks:
+      - platform_net
+    privileged: true
+
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
@@ -293,7 +329,11 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
+    networks:
+      - platform_net
+    privileged: true
+
 
 volumes:
   postgres-db-volume:
