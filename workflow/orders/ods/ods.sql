@@ -1,5 +1,6 @@
-drop table if exists `sales_order`;
-create table sales_order
+-- ODS 层，按照月进行分区
+drop table if exists `ods_sales_order`;
+create table ods_sales_order
 (
     sales_order_id            int            null,
     sales_order_detail_id     int            null,
@@ -31,8 +32,24 @@ create table sales_order
     modified_date             datetime       null
 ) ENGINE = InnoDB
   CHARACTER SET = utf8
-  COLLATE = utf8_general_ci;
+  COLLATE = utf8_general_ci
+    PARTITION BY RANGE (to_days(order_date)) (
 
-create index sales_order_sales_order_id_sales_order_detail_id_index
-    on sales_order (sales_order_id, sales_order_detail_id);
+        PARTITION p200806 VALUES LESS THAN (to_days('2008-06-01')),
 
+        PARTITION p200807 VALUES LESS THAN (to_days('2008-07-01')),
+
+        PARTITION p200808 VALUES LESS THAN (to_days('2008-08-01')),
+
+        PARTITION p200809 VALUES LESS THAN (to_days('2008-09-01')),
+
+        PARTITION p200810 VALUES LESS THAN (to_days('2008-10-01')),
+
+        PARTITION p200811 VALUES LESS THAN (to_days('2008-11-01')),
+
+        PARTITION p200812 VALUES LESS THAN (to_days('2008-12-01')),
+
+        PARTITION p200901 VALUES LESS THAN (to_days('2009-01-01')),
+
+        PARTITION p2009 VALUES LESS THAN (MAXVALUE) )
+;

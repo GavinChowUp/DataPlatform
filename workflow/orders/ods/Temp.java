@@ -1,4 +1,4 @@
-package sales.ods;
+package orders.ods;
 
 /**
  * ODS层ETL

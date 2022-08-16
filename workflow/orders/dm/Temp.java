@@ -1,4 +1,4 @@
-package sales.dm;
+package orders.dm;
 
 /**
  * DM 层ETL

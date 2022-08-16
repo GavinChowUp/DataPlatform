@@ -1,4 +1,4 @@
-package indicator.sales;
+package indicator.order;
 
 /**
  * 销售领域指标宽表

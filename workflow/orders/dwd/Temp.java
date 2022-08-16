@@ -1,4 +1,4 @@
-package sales.dwd;
+package orders.dwd;
 
 /**
  * DWD层ETL
