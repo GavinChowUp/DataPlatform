@@ -4,11 +4,11 @@ create table ods_sales_order
 (
     sales_order_id            int            null,
     sales_order_detail_id     int            null,
-    revision_number           tinyint        not null,
-    order_date                datetime       not null,
-    due_date                  datetime       not null,
-    ship_date                 datetime       null,
-    `status`                  tinyint        not null,
+    revision_number           int        not null,
+    order_date                date       not null,
+    due_date                  date       not null,
+    ship_date                 date       null,
+    `status`                  int        not null,
     online_order_flag         bit(8)         null,
     sales_order_number        varchar(30)    null,
     purchase_order_number     varchar(25)    null,
@@ -29,10 +29,8 @@ create table ods_sales_order
     unit_price_discount       double         null,
     line_total                decimal(38, 6) null,
     row_guid                  char(38)       null,
-    modified_date             datetime       null
-) ENGINE = InnoDB
-  CHARACTER SET = utf8
-  COLLATE = utf8_general_ci
+    modified_date             date       null
+)
     PARTITION BY RANGE (to_days(order_date)) (
 
         PARTITION p200806 VALUES LESS THAN (to_days('2008-06-01')),

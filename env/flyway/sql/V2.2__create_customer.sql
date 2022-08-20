@@ -1,8 +1,8 @@
-drop table if exists `customer`;
+drop table if exists customer;
 create table customer
 (
     customer_id   int          not null primary key,
-    name_style    bit          not null,
+    name_style    boolean          not null,
     title         varchar(8)   null,
     first_name    varchar(50)  not null,
     middle_name   varchar(50)  null,
@@ -15,8 +15,6 @@ create table customer
     password_hash varchar(128) not null,
     password_salt varchar(10)  not null,
     row_guid      char(38)     not null,
-    modified_date datetime     not null
-) ENGINE = InnoDB
-  CHARACTER SET = utf8
-  COLLATE = utf8_general_ci;
+    modified_date date     not null
+) ;
 

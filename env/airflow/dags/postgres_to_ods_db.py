@@ -21,7 +21,7 @@ with DAG(
     init_ods_task = MySqlOperator(
         task_id='init_ods_db',
         mysql_conn_id='ods_db',
-        sql='mysql_to_ods_db_init.sql',
+        sql='postgres_to_ods_db_init.sql',
         dag=dag,
     )
     query_task = MySqlOperator(

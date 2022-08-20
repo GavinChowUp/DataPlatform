@@ -41,31 +41,38 @@ networks:
     name: "platform_net"
 
 services:
-  postgres:
-    image: postgres:13
-    container_name: postgres
-    privileged: true
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-    #      POSTGRES_DB: myapp
-    #      APP_DB_USER: airflow
-    #      APP_DB_PASS: airflow
-    #      APP_DB_NAME: airflow
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-      - ./env/postgres/init/:/docker-entrypoint-initdb.d/
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "airflow" ]
-      interval: 5s
-      retries: 5
+  mysql:
     restart: always
+    image: mysql:latest
+    container_name: mysql
+    privileged: true
+    volumes:
+      - ./env/mysql/init/:/docker-entrypoint-initdb.d/
+      - ./env/mysql/conf/:/etc/mysql/conf.d/
+      - ./env/mysql/logs:/logs
+    #      - ./env/mysql/data:/var/lib/mysql:rw
+    environment:
+      MYSQL_DATABASE: 'data_platform'
+      MYSQL_USER: 'platform'
+      MYSQL_PASSWORD: 'de2022'
+      MYSQL_ROOT_PASSWORD: 'de2022'
+      TZ: Asia/Shanghai
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
     networks:
       - platform_net
-    ports:
-      - "5432:5432"
-    expose:
-      - "5432"
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+    healthcheck:
+      test: mysql --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD -e 'SHOW DATABASES;' # healthcheck command "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
 
   flyway:
     image: flyway/flyway:9.1.3
@@ -75,10 +82,10 @@ services:
       - ./env/flyway/sql:/flyway/sql
       - ./env/flyway/drivers:/flyway/drivers
     command:
-      -user=oltp
-      -password=oltp
-      -url=jdbc:postgresql://postgres:5432/oltp_db
-      -schemas=oltp
+      -user=platform
+      -password=de2022
+      -url=jdbc:mysql://mysql:3306
+      -schemas=data_platform
       -connectRetries=60
       -baselineOnMigrate=true
       -sqlMigrationSuffixes=.sql migrate
@@ -86,8 +93,29 @@ services:
       - platform_net
     restart: on-failure
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+    restart: always
+    networks:
+      - platform_net
+    privileged: true
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
 
   redis:
     image: redis:latest
