@@ -7,8 +7,13 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.models import Variable
 
+your_settings = {
+    "yesterday_ds_nodash": "{{ yesterday_ds_nodash }}",
+    "some_params": "some_value",
+}
 
-def oltp_to_ods():
+
+def oltp_to_ods(**context):
     src = PostgresHook(postgres_conn_id='oltp_db')
     dest = PostgresHook(postgres_conn_id='olap_db')
     src_conn = src.get_conn()
@@ -16,32 +21,36 @@ def oltp_to_ods():
     dest_conn = dest.get_conn()
     dest_cursor = dest_conn.cursor()
 
+    print(f"context:{context}")
+    schema_name = "ods_" + context["yesterday_ds_nodash"]
+    print(f"schema_name:{schema_name}")
+
     cursor.execute("SELECT * FROM oltp.address ;")
-    dest.insert_rows(table="ods.ods_address", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_address", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.customer ;")
-    dest.insert_rows(table="ods.ods_customer", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_customer", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.customer_address ;")
-    dest.insert_rows(table="ods.ods_customer_address", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_customer_address", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product ;")
-    dest.insert_rows(table="ods.ods_product", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_category ;")
-    dest.insert_rows(table="ods.ods_product_category", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_category", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_description ;")
-    dest.insert_rows(table="ods.ods_product_description", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_description", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_model ;")
-    dest.insert_rows(table="ods.ods_product_model", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_model", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_model_product_desc ;")
-    dest.insert_rows(table="ods.ods_product_model_product_desc", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_model_product_desc", rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.sales_order;")
-    dest.insert_rows(table="ods.ods_sales_order", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_sales_order", rows=cursor)
 
     # dest_cursor.execute("SELECT MAX(product_id) FROM ods.ods_product;")
     # product_id = dest_cursor.fetchone()[0]
@@ -67,12 +76,12 @@ with DAG(
             'email_on_failure': False,
             'email_on_retry': False,
             'retries': 1,
-            'retry_delay': timedelta(minutes=5),
+            'retry_delay': timedelta(minutes=1)
         },
-        description='Copy data from mysql',
+        description='Copy data from postgres',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2008, 5, 1),
-        tags=['data_warehouse'],
+        start_date=datetime(2022, 8, 21),
+        tags=['data_warehouse']
 ) as dag:
     init_ods_task = PostgresOperator(
         task_id='init_ods_db',
@@ -83,5 +92,7 @@ with DAG(
     db_migrate_task = PythonOperator(
         task_id='oltp_to_ods',
         python_callable=oltp_to_ods,
+        provide_context=True,
+        templates_dict=your_settings
     )
     init_ods_task >> db_migrate_task

@@ -18,7 +18,7 @@ flyway: https://flywaydb.org/documentation/concepts/migrations
 cd project folder, then use:
 
 ```shell
-colima start -m 14 --cpu 14 --mount /Volumes/Work/Code/DataPlatform/:w # 替换成自己的路径
+colima start -m 10 --cpu 8 --mount /Volumes/Work/Code/DataPlatform/:w # 替换成自己的路径
 docker-compose up -d
 ```
 

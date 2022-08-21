@@ -1,4 +1,4 @@
-package orders.dm;
+package orders.dim;
 
 /**
  * DM 层ETL
