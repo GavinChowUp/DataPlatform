@@ -7,5 +7,5 @@ create table product_category
     name                     varchar(50) not null,
     row_guid                   char(38)    not null,
     modified_date              date    not null
-) ;;
+) ;
 
