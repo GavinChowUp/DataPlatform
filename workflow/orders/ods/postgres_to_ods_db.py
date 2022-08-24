@@ -22,35 +22,36 @@ def oltp_to_ods(**context):
     dest_cursor = dest_conn.cursor()
 
     print(f"context:{context}")
-    schema_name = "ods_" + context["yesterday_ds_nodash"]
+    schema_name = "ods"
     print(f"schema_name:{schema_name}")
+    table_suffix="_" + context["yesterday_ds_nodash"]
 
     cursor.execute("SELECT * FROM oltp.address ;")
-    dest.insert_rows(table=schema_name + ".ods_address", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_address"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.customer ;")
-    dest.insert_rows(table=schema_name + ".ods_customer", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_customer"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.customer_address ;")
-    dest.insert_rows(table=schema_name + ".ods_customer_address", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_customer_address"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product ;")
-    dest.insert_rows(table=schema_name + ".ods_product", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_category ;")
-    dest.insert_rows(table=schema_name + ".ods_product_category", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_category"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_description ;")
-    dest.insert_rows(table=schema_name + ".ods_product_description", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_description"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_model ;")
-    dest.insert_rows(table=schema_name + ".ods_product_model", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_model"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.product_model_product_desc ;")
-    dest.insert_rows(table=schema_name + ".ods_product_model_product_desc", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_product_model_product_desc"+table_suffix, rows=cursor)
 
     cursor.execute("SELECT * FROM oltp.sales_order;")
-    dest.insert_rows(table=schema_name + ".ods_sales_order", rows=cursor)
+    dest.insert_rows(table=schema_name + ".ods_sales_order"+table_suffix, rows=cursor)
 
     # dest_cursor.execute("SELECT MAX(product_id) FROM ods.ods_product;")
     # product_id = dest_cursor.fetchone()[0]
@@ -89,10 +90,16 @@ with DAG(
         sql='ods_db_init.sql',
         dag=dag,
     )
+    everyday_ods_task = PostgresOperator(
+        task_id='everyday_ods_db',
+        postgres_conn_id='olap_db',
+        sql='ods_db_init_everyday.sql',
+        dag=dag,
+    )
     db_migrate_task = PythonOperator(
         task_id='oltp_to_ods',
         python_callable=oltp_to_ods,
         provide_context=True,
         templates_dict=your_settings
     )
-    init_ods_task >> db_migrate_task
+    init_ods_task >> everyday_ods_task >> db_migrate_task
