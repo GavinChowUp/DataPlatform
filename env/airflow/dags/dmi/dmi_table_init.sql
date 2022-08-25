@@ -79,7 +79,7 @@ create table if not exists dmi.dmi_product
     -- product_model_id
     product_model_name                        varchar(50)      not null,
     product_model_catalog_description         varchar(200)     null,
-    product_model_product_culture_description text[][]         null
+    product_model_product_culture_description json        null
 );
 
 
