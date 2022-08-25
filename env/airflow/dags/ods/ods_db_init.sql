@@ -1,8 +1,7 @@
 -- ODS 层，sales表暂时未按照月分区，后续可以优化
-CREATE SCHEMA if not exists ods_{{yesterday_ds_nodash}};
+CREATE SCHEMA if not exists ods;
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_sales_order;
-create table ods_{{yesterday_ds_nodash}}.ods_sales_order
+create table if not exists ods.ods_sales_order
 (
     sales_order_id            int              null,
     sales_order_detail_id     int              null,
@@ -34,8 +33,8 @@ create table ods_{{yesterday_ds_nodash}}.ods_sales_order
     modified_date             date             null
 );
 
--- drop table if exists ods_{{yesterday_ds_nodash}}.ods_sales_order;
--- create table ods_{{yesterday_ds_nodash}}.ods_sales_order
+-- drop table if exists ods.ods_sales_order;
+-- create table ods.ods_sales_order
 -- (
 --     sales_order_id            int            null,
 --     sales_order_detail_id     int            null,
@@ -68,8 +67,7 @@ create table ods_{{yesterday_ds_nodash}}.ods_sales_order
 -- )
 --     PARTITION BY RANGE (to_date(to_char(order_date,'YYYY-MM-DD HH24:MI:SS'),'yyyy-MM-dd'));
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_product;
-create table ods_{{yesterday_ds_nodash}}.ods_product
+create table if not exists ods.ods_product
 (
     product_id                int              not null primary key,
     name                      varchar(50)      not null,
@@ -90,8 +88,7 @@ create table ods_{{yesterday_ds_nodash}}.ods_product
     modified_date             date             null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_customer;
-create table ods_{{yesterday_ds_nodash}}.ods_customer
+create table if not exists ods.ods_customer
 (
     customer_id   int          not null primary key,
     name_style    boolean      not null,
@@ -110,8 +107,7 @@ create table ods_{{yesterday_ds_nodash}}.ods_customer
     modified_date date         not null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_customer_address;
-create table ods_{{yesterday_ds_nodash}}.ods_customer_address
+create table if not exists ods.ods_customer_address
 (
     customer_id   int         not null,
     address_id    int         not null,
@@ -122,8 +118,8 @@ create table ods_{{yesterday_ds_nodash}}.ods_customer_address
         unique (customer_id, address_id)
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_address;
-create table ods_{{yesterday_ds_nodash}}.ods_address
+
+create table if not exists ods.ods_address
 (
     address_id     int         not null
         primary key,
@@ -137,8 +133,8 @@ create table ods_{{yesterday_ds_nodash}}.ods_address
     modified_date  date        not null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_product_category;
-create table ods_{{yesterday_ds_nodash}}.ods_product_category
+
+create table if not exists ods.ods_product_category
 (
     product_category_id        int         not null
         primary key,
@@ -148,8 +144,7 @@ create table ods_{{yesterday_ds_nodash}}.ods_product_category
     modified_date              date        not null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_product_description;
-create table ods_{{yesterday_ds_nodash}}.ods_product_description
+create table if not exists ods.ods_product_description
 (
     product_description_id int          not null
         primary key,
@@ -158,8 +153,8 @@ create table ods_{{yesterday_ds_nodash}}.ods_product_description
     modified_date          date         not null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_product_model;
-create table ods_{{yesterday_ds_nodash}}.ods_product_model
+
+create table if not exists ods.ods_product_model
 (
     product_model_id    int          not null
         primary key,
@@ -169,11 +164,11 @@ create table ods_{{yesterday_ds_nodash}}.ods_product_model
     modified_date       date         not null
 );
 
-drop table if exists ods_{{yesterday_ds_nodash}}.ods_product_model_product_desc;
-create table ods_{{yesterday_ds_nodash}}.ods_product_model_product_desc
+
+create table if not exists ods.ods_product_model_product_desc
 (
     product_model_id        int      null,
-    product_description_Iid int      null,
+    product_description_id int      null,
     culture                 char(6)  null,
     row_guid                char(38) null,
     modified_date           date     null
