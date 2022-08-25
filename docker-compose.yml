@@ -294,7 +294,7 @@ services:
     profiles:
       - flower
     ports:
-      - 5555:5555
+      - "5555:5555"
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:5555/" ]
       interval: 10s
@@ -309,6 +309,14 @@ services:
       - platform_net
     privileged: true
 
+  metabase:
+    image: gavinup/metabase:1.41.4
+    networks:
+      - platform_net
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
 
 volumes:
   postgres-db-volume:
