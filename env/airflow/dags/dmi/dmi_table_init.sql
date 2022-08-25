@@ -15,26 +15,54 @@ create table if not exists dmi.dmi_date
     is_workday varchar(30),
     holiday_id varchar(30)
 );
-comment
-    on column dmi.dmi_date.date_id is '日';
-comment
-    on column dmi.dmi_date.week_id is '周Id';
-comment
-    on column dmi.dmi_date.week_day is '周几';
-comment
-    on column dmi.dmi_date.day is '每月的第几天';
-comment
-    on column dmi.dmi_date.month is '第几月';
-comment
-    on column dmi.dmi_date.quarter is '第几个季度';
-comment
-    on column dmi.dmi_date.year is '年';
-comment
-    on column dmi.dmi_date.is_workday is '是否是工作日';
-comment
-    on column dmi.dmi_date.holiday_id is '节假日';
-comment
-    on table dmi.dmi_date is '时间维度表';
+ALTER TABLE dmi.dmi_date ADD CONSTRAINT d_date_date_dim_id_pk PRIMARY KEY (id);
+
+CREATE INDEX d_date_date_actual_idx
+    ON dmi_date(date_actual);
+
+INSERT INTO dmi_date
+SELECT TO_CHAR(datum, 'yyyymmdd')::INT AS date_dim_id,
+  datum AS date_actual,
+       EXTRACT(EPOCH FROM datum) AS epoch,
+       TO_CHAR(datum, 'fmDDth') AS day_suffix,
+       TO_CHAR(datum, 'TMDay') AS day_name,
+       EXTRACT(ISODOW FROM datum) AS day_of_week,
+       EXTRACT(DAY FROM datum) AS day_of_month,
+       datum - DATE_TRUNC('quarter', datum)::DATE + 1 AS day_of_quarter,
+  EXTRACT(DOY FROM datum) AS day_of_year,
+       TO_CHAR(datum, 'W')::INT AS week_of_month,
+  EXTRACT(WEEK FROM datum) AS week_of_year,
+       EXTRACT(ISOYEAR FROM datum) || TO_CHAR(datum, '"-W"IW-') || EXTRACT(ISODOW FROM datum) AS week_of_year_iso,
+       EXTRACT(MONTH FROM datum) AS month_actual,
+       TO_CHAR(datum, 'TMMonth') AS month_name,
+       TO_CHAR(datum, 'Mon') AS month_name_abbreviated,
+       EXTRACT(QUARTER FROM datum) AS quarter_actual,
+       CASE
+           WHEN EXTRACT(QUARTER FROM datum) = 1 THEN 'First'
+           WHEN EXTRACT(QUARTER FROM datum) = 2 THEN 'Second'
+           WHEN EXTRACT(QUARTER FROM datum) = 3 THEN 'Third'
+           WHEN EXTRACT(QUARTER FROM datum) = 4 THEN 'Fourth'
+           END AS quarter_name,
+       EXTRACT(YEAR FROM datum) AS year_actual,
+       datum + (1 - EXTRACT(ISODOW FROM datum))::INT AS first_day_of_week,
+  datum + (7 - EXTRACT(ISODOW FROM datum))::INT AS last_day_of_week,
+  datum + (1 - EXTRACT(DAY FROM datum))::INT AS first_day_of_month,
+  (DATE_TRUNC('MONTH', datum) + INTERVAL '1 MONTH - 1 day')::DATE AS last_day_of_month,
+  DATE_TRUNC('quarter', datum)::DATE AS first_day_of_quarter,
+  (DATE_TRUNC('quarter', datum) + INTERVAL '3 MONTH - 1 day')::DATE AS last_day_of_quarter,
+  TO_DATE(EXTRACT(YEAR FROM datum) || '-01-01', 'YYYY-MM-DD') AS first_day_of_year,
+       TO_DATE(EXTRACT(YEAR FROM datum) || '-12-31', 'YYYY-MM-DD') AS last_day_of_year,
+       TO_CHAR(datum, 'mmyyyy') AS mmyyyy,
+       TO_CHAR(datum, 'mmddyyyy') AS mmddyyyy,
+       CASE
+           WHEN EXTRACT(ISODOW FROM datum) IN (6, 7) THEN TRUE
+           ELSE FALSE
+           END AS weekend_indr
+FROM (SELECT '2000-01-01'::DATE + SEQUENCE.DAY AS datum
+      FROM GENERATE_SERIES(0, 29219) AS SEQUENCE (DAY)
+      GROUP BY SEQUENCE.DAY) DQ
+ORDER BY 1;
+COMMIT;
 
 -- 状态表，只录入一次
 create table if not exists dmi.dmi_status
