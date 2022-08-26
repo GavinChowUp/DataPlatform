@@ -11,8 +11,8 @@ create table dmi.dmi_product_{{yesterday_ds_nodash}}
 ) inherits (dmi.dmi_product);
 
 
--- 用户
-drop table if exists dmi.dmi_customer_{{yesterday_ds_nodash}};
-create table dmi.dmi_customer_{{yesterday_ds_nodash}}
+-- 用户，当日过期的用户数据
+drop table if exists dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds,-1),'%Y-%m-%d','%Y%m%d')}};
+create table dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds,-1),'%Y-%m-%d','%Y%m%d')}}
 (
 ) inherits (dmi.dmi_customer);

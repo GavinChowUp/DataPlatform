@@ -53,6 +53,7 @@ def oltp_to_ods(**context):
     cursor.execute("SELECT * FROM oltp.sales_order;")
     dest.insert_rows(table=schema_name + ".ods_sales_order" + table_suffix, rows=cursor)
 
+
     # dest_cursor.execute("SELECT MAX(product_id) FROM ods.ods_product;")
     # product_id = dest_cursor.fetchone()[0]
     # if product_id is None:

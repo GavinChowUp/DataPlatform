@@ -1,41 +1,38 @@
-with product_base as (select product_id,
-                             name,
-                             product_number,
-                             color,
-                             standard_cost,
-                             list_price,
-    size
-   , weight
-   , sell_start_date
-   , sell_end_date
-   , discontinued_date
-   , modified_date
-   , product_category_id
-   , product_model_id
-from ods.ods_product_{{yesterday_ds_nodash}}),
-    category1 as (
-select product_category_id as product_category1_id,
-    name product_category1_name,
-    product_category_id
-from ods.ods_product_category_{{yesterday_ds_nodash}}),
-    category2 as (
-select product_category_id as product_category2_id,
-    name as product_category2_name,
-    parent_product_category_id
-from ods.ods_product_category_{{yesterday_ds_nodash}}),
-    product_module as (
-select name as product_model_name,
-    catalog_description as product_model_catalog_description,
-    product_model_id
-from ods.ods_product_model_{{yesterday_ds_nodash}}),
-    product_module_product_desc
-    as (
-select pmpd.product_model_id,
-    json_agg(json_build_array(trim (pmpd.culture), opd.description)) as product_model_product_desc_culture
-from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
+-- dmi_product 维度装载数据sql
+with product_base as (select product_id
+                           , name
+                           , product_number
+                           , color
+                           , standard_cost
+                           , list_price
+                           , size
+                           , weight
+                           , sell_start_date
+                           , sell_end_date
+                           , discontinued_date
+                           , modified_date
+                           , product_category_id
+                           , product_model_id
+                      from ods.ods_product_{{yesterday_ds_nodash}}),
+     category1 as (select product_category_id as product_category1_id,
+                          name                   product_category1_name,
+                          product_category_id
+                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
+     category2 as (select product_category_id as product_category2_id,
+                          name                as product_category2_name,
+                          parent_product_category_id
+                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
+     product_module as (select name                as product_model_name,
+                               catalog_description as product_model_catalog_description,
+                               product_model_id
+                        from ods.ods_product_model_{{yesterday_ds_nodash}}),
+     product_module_product_desc
+         as (select pmpd.product_model_id,
+                    json_agg(json_build_array(trim(pmpd.culture), opd.description)) as product_model_product_desc_culture
+             from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
     left join ods.ods_product_description_{{yesterday_ds_nodash}} opd
-on pmpd.product_description_id = opd.product_description_id
-group by pmpd.product_model_id)
+             on pmpd.product_description_id = opd.product_description_id
+             group by pmpd.product_model_id)
 insert
 into dmi.dmi_product_{{yesterday_ds_nodash}}
 select product_base.product_id,
@@ -63,3 +60,189 @@ from product_base
          left join product_module on product_module.product_model_id = product_base.product_model_id
          left join product_module_product_desc
                    on product_module_product_desc.product_model_id = product_base.product_model_id;
+
+-- dmi_customer 每日装载数据sql
+-- dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds,-1),'%Y-%m-%d','%Y%m%d')}}
+-- 有效数据入库
+with tmp as (select new.customer_id   as new_customer_id,
+                    new.name_style    as new_name_style,
+                    new.title         as new_title,
+                    new.first_name    as new_first_name,
+                    new.middle_name   as new_middle_name,
+                    new.last_name     as new_last_name,
+                    new.suffix        as new_suffix,
+                    new.company_name  as new_company_name,
+                    new.sales_person  as new_sales_person,
+                    new.email_address as new_email_address,
+                    new.phone         as new_phone,
+                    new.password_hash as new_password_hash,
+                    new.password_salt as new_password_salt,
+                    new.modified_date as new_modified_date,
+                    new.create_time   as new_create_time,
+                    new.end_date      as new_end_date,
+                    old.customer_id   as old_customer_id,
+                    old.name_style    as old_name_style,
+                    old.title         as old_title,
+                    old.first_name    as old_first_name,
+                    old.middle_name   as old_middle_name,
+                    old.last_name     as old_last_name,
+                    old.suffix        as old_suffix,
+                    old.company_name  as old_company_name,
+                    old.sales_person  as old_sales_person,
+                    old.email_address as old_email_address,
+                    old.phone         as old_phone,
+                    old.password_hash as old_password_hash,
+                    old.password_salt as old_password_salt,
+                    old.modified_date as old_modified_date,
+                    old.create_time   as old_create_time,
+                    old.end_date      as old_end_date
+
+             from (select customer_id,
+                          name_style,
+                          title,
+                          first_name,
+                          middle_name,
+                          last_name,
+                          suffix,
+                          company_name,
+                          sales_person,
+                          email_address,
+                          phone,
+                          password_hash,
+                          password_salt,
+                          modified_date,
+                          create_time,
+                          end_date
+                   from dmi.dmi_customer_99999999) old
+                      full outer join
+                  (select customer_id,
+                          name_style,
+                          title,
+                          first_name,
+                          middle_name,
+                          last_name,
+                          suffix,
+                          company_name,
+                          sales_person,
+                          email_address,
+                          phone,
+                          password_hash,
+                          password_salt,
+                          modified_date,
+                          '{{yesterday_ds}}' as create_time,
+                          '9999-99-99'       as end_date
+                   from ods.ods_customer_{{yesterday_ds_nodash}}
+                   where modified_date >='to_date({{yesterday_ds}}', 'yyyy-MM-dd')) new
+on old.customer_id = new.customer_id)
+insert
+into dmi.dmi_customer_99999999
+select if(new_customer_id is null, old_customer_id, new_customer_id),
+       if(new_name_style is null, old_name_style, new_name_style),
+       if(new_title is null, old_title, new_title),
+       if(new_first_name is null, old_first_name, new_first_name),
+       if(new_middle_name is null, old_middle_name, new_middle_name),
+       if(new_last_name is null, old_last_name, new_last_name),
+       if(new_suffix is null, old_suffix, new_suffix),
+       if(new_company_name is null, old_company_name, new_company_name),
+       if(new_sales_person is null, old_sales_person, new_sales_person),
+       if(new_email_address is null, old_email_address, new_email_address),
+       if(new_phone is null, old_phone, new_phone),
+       if(new_password_hash is null, old_password_hash, new_password_hash),
+       if(new_password_salt is null, old_password_salt, new_password_salt),
+       if(new_modified_date is null, old_modified_date, new_modified_date),
+       if(new_create_time is null, old_create_time, new_create_time),
+       if(new_end_date is null, old_end_date, new_end_date)
+from tmp;
+
+-- 过期数据入库
+with tmp as (select new.customer_id   as new_customer_id,
+                    new.name_style    as new_name_style,
+                    new.title         as new_title,
+                    new.first_name    as new_first_name,
+                    new.middle_name   as new_middle_name,
+                    new.last_name     as new_last_name,
+                    new.suffix        as new_suffix,
+                    new.company_name  as new_company_name,
+                    new.sales_person  as new_sales_person,
+                    new.email_address as new_email_address,
+                    new.phone         as new_phone,
+                    new.password_hash as new_password_hash,
+                    new.password_salt as new_password_salt,
+                    new.modified_date as new_modified_date,
+                    new.create_time   as new_create_time,
+                    new.end_date      as new_end_date,
+                    old.customer_id   as old_customer_id,
+                    old.name_style    as old_name_style,
+                    old.title         as old_title,
+                    old.first_name    as old_first_name,
+                    old.middle_name   as old_middle_name,
+                    old.last_name     as old_last_name,
+                    old.suffix        as old_suffix,
+                    old.company_name  as old_company_name,
+                    old.sales_person  as old_sales_person,
+                    old.email_address as old_email_address,
+                    old.phone         as old_phone,
+                    old.password_hash as old_password_hash,
+                    old.password_salt as old_password_salt,
+                    old.modified_date as old_modified_date,
+                    old.create_time   as old_create_time,
+                    old.end_date      as old_end_date
+
+             from (select customer_id,
+                          name_style,
+                          title,
+                          first_name,
+                          middle_name,
+                          last_name,
+                          suffix,
+                          company_name,
+                          sales_person,
+                          email_address,
+                          phone,
+                          password_hash,
+                          password_salt,
+                          modified_date,
+                          create_time,
+                          end_date
+                   from dmi.dmi_customer_99999999) old
+                      full outer join
+                  (select customer_id,
+                          name_style,
+                          title,
+                          first_name,
+                          middle_name,
+                          last_name,
+                          suffix,
+                          company_name,
+                          sales_person,
+                          email_address,
+                          phone,
+                          password_hash,
+                          password_salt,
+                          modified_date,
+                          '{{yesterday_ds}}' as create_time,
+                          '9999-99-99'       as end_date
+                   from ods.ods_customer_{{yesterday_ds_nodash}}
+                   where modified_date >='to_date({{yesterday_ds}}', 'yyyy-MM-dd')) new
+on old.customer_id = new.customer_id)
+insert
+into dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
+select old_customer_id,
+       old_name_style,
+       old_title,
+       old_first_name,
+       old_middle_name,
+       old_last_name,
+       old_suffix,
+       old_company_name,
+       old_sales_person,
+       old_email_address,
+       old_phone,
+       old_password_hash,
+       old_password_salt,
+       old_modified_date,
+       old_create_time,
+       '{{macros.ds_add(yesterday_ds,-1)}}'
+from tmp
+where old_customer_id is not null
+  and new_customer_id is not null;

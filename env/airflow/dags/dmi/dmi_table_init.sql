@@ -2,7 +2,8 @@
 CREATE SCHEMA if not exists dmi;
 
 -- 时间维度表,只录入一次
-create table if not exists dmi.dmi_date
+drop table if exists dmi.dmi_date;
+create table dmi.dmi_date
 (
     id         bigint not null,
     date_id    varchar(30),
@@ -15,12 +16,13 @@ create table if not exists dmi.dmi_date
     is_workday varchar(30),
     holiday_id varchar(30)
 );
-ALTER TABLE dmi.dmi_date ADD CONSTRAINT d_date_date_dim_id_pk PRIMARY KEY (id);
+ALTER TABLE dmi.dmi_date
+    ADD CONSTRAINT d_date_date_dim_id_pk PRIMARY KEY (id);
 
 CREATE INDEX d_date_date_actual_idx
-    ON dmi_date(date_actual);
+    ON dmi.dmi_date(date_actual);
 
-INSERT INTO dmi_date
+INSERT INTO dmi.dmi_date
 SELECT TO_CHAR(datum, 'yyyymmdd')::INT AS date_dim_id,
   datum AS date_actual,
        EXTRACT(EPOCH FROM datum) AS epoch,
@@ -58,19 +60,24 @@ SELECT TO_CHAR(datum, 'yyyymmdd')::INT AS date_dim_id,
            WHEN EXTRACT(ISODOW FROM datum) IN (6, 7) THEN TRUE
            ELSE FALSE
            END AS weekend_indr
-FROM (SELECT '2000-01-01'::DATE + SEQUENCE.DAY AS datum
+FROM (SELECT '2008-01-01'::DATE + SEQUENCE.DAY AS datum
       FROM GENERATE_SERIES(0, 29219) AS SEQUENCE (DAY)
       GROUP BY SEQUENCE.DAY) DQ
 ORDER BY 1;
 COMMIT;
 
 -- 状态表，只录入一次
-create table if not exists dmi.dmi_status
+drop table if exists dmi.dmi_status;
+create table dmi.dmi_status
 (
     id     bigint not null primary key,
     status int    null,
     name   varchar(20)
 );
+INSERT INTO dmi.dmi_status (id, status, name)
+VALUES (1::bigint, 1::integer, 'create order'::varchar(20));
+INSERT INTO dmi.dmi_status (id, status, name)
+VALUES (2::bigint, 5::integer, 'ship order'::varchar(20));
 
 --城市维度表，如果有全量数据的话，只需要导入一次
 -- drop table if exists dmi.dmi_city;
@@ -107,13 +114,53 @@ create table if not exists dmi.dmi_product
     -- product_model_id
     product_model_name                        varchar(50)      not null,
     product_model_catalog_description         varchar(200)     null,
-    product_model_product_culture_description json        null
+    product_model_product_culture_description json             null
 );
 
 
--- 用户,待补充
+-- 用户维度，拉链表
 -- drop table if exists dmi.dmi_customer;
 create table if not exists dmi.dmi_customer
 (
-
+    customer_id   int          not null,
+    name_style    boolean      not null,
+    title         varchar(8)   null,
+    first_name    varchar(50)  not null,
+    middle_name   varchar(50)  null,
+    last_name     varchar(50)  not null,
+    suffix        varchar(10)  null,
+    company_name  varchar(128) null,
+    sales_person  varchar(256) null,
+    email_address varchar(50)  null,
+    phone         varchar(25)  null,
+    password_hash varchar(128) not null,
+    password_salt varchar(10)  not null,
+    modified_date date         not null,
+    create_time   varchar(50)  not null,
+    end_date      varchar(50)  not null
 );
+
+-- 全量最新的用户数据
+drop table if exists dmi.dmi_customer_99999999;
+create table dmi.dmi_customer_99999999
+(
+) inherits (dmi.dmi_customer);
+-- dmi_customer首次装载数据sql
+insert into dmi.dmi_customer_99999999
+select customer_id,
+       name_style,
+       title,
+       md5(first_name),
+       middle_name,
+       last_name,
+       suffix,
+       md5(company_name),
+       sales_person,
+       md5(email_address),
+       md5(phone),
+       md5(password_hash),
+       md5(password_salt),
+       modified_date,
+    '{{yesterday_ds}}',
+    '9999-99-99'
+from ods.ods_customer_{{yesterday_ds_nodash}}
