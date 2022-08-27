@@ -132,26 +132,26 @@ with tmp as (select new.customer_id   as new_customer_id,
                           '{{yesterday_ds}}' as create_time,
                           '9999-99-99'       as end_date
                    from ods.ods_customer_{{yesterday_ds_nodash}}
-                   where modified_date >='to_date({{yesterday_ds}}', 'yyyy-MM-dd')) new
-on old.customer_id = new.customer_id)
+                   where modified_date >=to_date('{{yesterday_ds}}', 'yyyy-MM-dd')) new
+                  on old.customer_id = new.customer_id)
 insert
 into dmi.dmi_customer_99999999
-select if(new_customer_id is null, old_customer_id, new_customer_id),
-       if(new_name_style is null, old_name_style, new_name_style),
-       if(new_title is null, old_title, new_title),
-       if(new_first_name is null, old_first_name, new_first_name),
-       if(new_middle_name is null, old_middle_name, new_middle_name),
-       if(new_last_name is null, old_last_name, new_last_name),
-       if(new_suffix is null, old_suffix, new_suffix),
-       if(new_company_name is null, old_company_name, new_company_name),
-       if(new_sales_person is null, old_sales_person, new_sales_person),
-       if(new_email_address is null, old_email_address, new_email_address),
-       if(new_phone is null, old_phone, new_phone),
-       if(new_password_hash is null, old_password_hash, new_password_hash),
-       if(new_password_salt is null, old_password_salt, new_password_salt),
-       if(new_modified_date is null, old_modified_date, new_modified_date),
-       if(new_create_time is null, old_create_time, new_create_time),
-       if(new_end_date is null, old_end_date, new_end_date)
+select COALESCE(new_customer_id, old_customer_id),
+       COALESCE(new_name_style, old_name_style),
+       COALESCE(new_title, old_title),
+       COALESCE(new_first_name, old_first_name),
+       COALESCE(new_middle_name, old_middle_name),
+       COALESCE(new_last_name, old_last_name),
+       COALESCE(new_suffix, old_suffix),
+       COALESCE(new_company_name, old_company_name),
+       COALESCE(new_sales_person, old_sales_person),
+       COALESCE(new_email_address, old_email_address),
+       COALESCE(new_phone, old_phone),
+       COALESCE(new_password_hash, old_password_hash),
+       COALESCE(new_password_salt, old_password_salt),
+       COALESCE(new_modified_date, old_modified_date),
+       COALESCE(new_create_time, old_create_time),
+       COALESCE(new_end_date, old_end_date)
 from tmp;
 
 -- 过期数据入库
@@ -223,8 +223,8 @@ with tmp as (select new.customer_id   as new_customer_id,
                           '{{yesterday_ds}}' as create_time,
                           '9999-99-99'       as end_date
                    from ods.ods_customer_{{yesterday_ds_nodash}}
-                   where modified_date >='to_date({{yesterday_ds}}', 'yyyy-MM-dd')) new
-on old.customer_id = new.customer_id)
+                   where modified_date >=to_date('{{yesterday_ds}}', 'yyyy-MM-dd')) new
+                  on old.customer_id = new.customer_id)
 insert
 into dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
 select old_customer_id,
