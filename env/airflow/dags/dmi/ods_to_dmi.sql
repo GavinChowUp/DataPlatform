@@ -246,3 +246,9 @@ select old_customer_id,
 from tmp
 where old_customer_id is not null
   and new_customer_id is not null;
+
+insert into olap_db.dmi.dmi_city (city, state_province, country_region)
+select distinct city, state_province, country_region
+from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
+where not exists(select city from olap_db.dmi.dmi_city old where old.city = new.city and old.state_province = new.state_province)
+

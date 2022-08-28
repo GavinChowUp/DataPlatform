@@ -103,11 +103,12 @@ VALUES (2::bigint, 5::integer, 'ship order'::varchar(20));
 -- drop table if exists dmi.dmi_city;
 create table if not exists dmi.dmi_city
 (
-    id             bigint      not null,
+    id             bigserial
+        constraint dmi_city_pk
+            primary key,
     city           varchar(30) not null,
     state_province varchar(50) not null,
-    country_region varchar(50) not null,
-    postal_code    varchar(15) not null
+    country_region varchar(50) not null
 );
 
 -- 全量
@@ -181,6 +182,6 @@ select customer_id,
        password_hash,
        password_salt,
        modified_date,
-    '{{yesterday_ds}}',
-    '9999-99-99'
+       '{{yesterday_ds}}',
+       '9999-99-99'
 from ods.ods_customer_{{yesterday_ds_nodash}}
