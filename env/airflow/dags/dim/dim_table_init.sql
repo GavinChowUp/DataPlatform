@@ -1,9 +1,9 @@
 -- dmi
-CREATE SCHEMA if not exists dmi;
+CREATE SCHEMA if not exists dim;
 
 -- 时间维度表,只录入一次
-drop table if exists dmi.dmi_date;
-create table dmi.dmi_date
+drop table if exists dim.dim_date;
+create table dim.dim_date
 (
     id                     INT        NOT NULL,
     date_actual            DATE       NOT NULL,
@@ -36,13 +36,13 @@ create table dmi.dmi_date
     weekend_indr           BOOLEAN    NOT NULL
 
 );
-ALTER TABLE dmi.dmi_date
+ALTER TABLE dim.dim_date
     ADD CONSTRAINT d_date_date_dim_id_pk PRIMARY KEY (id);
 
 CREATE INDEX d_date_date_actual_idx
-    ON dmi.dmi_date (date_actual);
+    ON dim.dim_date (date_actual);
 
-INSERT INTO dmi.dmi_date
+INSERT INTO dim.dim_date
 SELECT TO_CHAR(datum, 'yyyymmdd')::INT                                                        AS date_dim_id,
        datum                                                                                  AS date_actual,
        EXTRACT(EPOCH FROM datum)                                                              AS epoch,
@@ -87,24 +87,24 @@ ORDER BY 1;
 COMMIT;
 
 -- 状态表，只录入一次
-drop table if exists dmi.dmi_status;
-create table dmi.dmi_status
+drop table if exists dim.dim_status;
+create table dim.dim_status
 (
     id     bigint not null primary key,
     status int    null,
     name   varchar(20)
 );
-INSERT INTO dmi.dmi_status (id, status, name)
+INSERT INTO dim.dim_status (id, status, name)
 VALUES (1::bigint, 1::integer, 'create order'::varchar(20));
-INSERT INTO dmi.dmi_status (id, status, name)
+INSERT INTO dim.dim_status (id, status, name)
 VALUES (2::bigint, 5::integer, 'ship order'::varchar(20));
 
 --城市维度表，如果有全量数据的话，只需要导入一次
--- drop table if exists dmi.dmi_city;
-create table if not exists dmi.dmi_city
+-- drop table if exists dim.dim_city;
+create table if not exists dim.dim_city
 (
     id             bigserial
-        constraint dmi_city_pk
+        constraint dim_city_pk
             primary key,
     city           varchar(30) not null,
     state_province varchar(50) not null,
@@ -112,8 +112,8 @@ create table if not exists dmi.dmi_city
 );
 
 -- 全量
--- drop table if exists dmi.dmi_product;
-create table if not exists dmi.dmi_product
+-- drop table if exists dim.dim_product;
+create table if not exists dim.dim_product
 (
     product_id                                int              not null,
     name                                      varchar(50)      not null,
@@ -140,8 +140,8 @@ create table if not exists dmi.dmi_product
 
 
 -- 用户维度，拉链表
--- drop table if exists dmi.dmi_customer;
-create table if not exists dmi.dmi_customer
+-- drop table if exists dim.dim_customer;
+create table if not exists dim.dim_customer
 (
     customer_id   int          not null,
     name_style    boolean      not null,
@@ -162,12 +162,12 @@ create table if not exists dmi.dmi_customer
 );
 
 -- 全量最新的用户数据
-drop table if exists dmi.dmi_customer_99999999;
-create table dmi.dmi_customer_99999999
+drop table if exists dim.dim_customer_99999999;
+create table dim.dim_customer_99999999
 (
-) inherits (dmi.dmi_customer);
--- dmi_customer首次装载数据sql
-insert into dmi.dmi_customer_99999999
+) inherits (dim.dim_customer);
+-- dim_customer首次装载数据sql
+insert into dim.dim_customer_99999999
 select customer_id,
        name_style,
        title,

@@ -28,13 +28,13 @@ with DAG(
     everyday_dmi_task = PostgresOperator(
         task_id='everyday_dmi',
         postgres_conn_id='olap_db',
-        sql='/dmi_table_init_everyday.sql',
+        sql='/dim_table_init_everyday.sql',
         dag=dag,
     )
     ods_to_dmi_task = PostgresOperator(
         task_id='ods_to_dmi',
         postgres_conn_id='olap_db',
-        sql='/ods_to_dmi.sql',
+        sql='/ods_to_dim.sql',
         dag=dag,
     )
     init_dim_task >> everyday_dmi_task >> ods_to_dmi_task

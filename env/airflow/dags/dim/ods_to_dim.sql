@@ -1,4 +1,4 @@
--- dmi_product 维度装载数据sql
+-- dim_product 维度装载数据sql
 with product_base as (select product_id
                            , name
                            , product_number
@@ -34,7 +34,7 @@ with product_base as (select product_id
              on pmpd.product_description_id = opd.product_description_id
              group by pmpd.product_model_id)
 insert
-into dmi.dmi_product_{{yesterday_ds_nodash}}
+into dim.dim_product_{{yesterday_ds_nodash}}
 select product_base.product_id,
        product_base.name,
        product_base.product_number,
@@ -61,8 +61,8 @@ from product_base
          left join product_module_product_desc
                    on product_module_product_desc.product_model_id = product_base.product_model_id;
 
--- dmi_customer 每日装载数据sql
--- dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds,-1),'%Y-%m-%d','%Y%m%d')}}
+-- dim_customer 每日装载数据sql
+-- dim.dim_customer_{{macros.ds_format(macros.ds_add(yesterday_ds,-1),'%Y-%m-%d','%Y%m%d')}}
 -- 有效数据入库
 with tmp as (select new.customer_id   as new_customer_id,
                     new.name_style    as new_name_style,
@@ -113,7 +113,7 @@ with tmp as (select new.customer_id   as new_customer_id,
                           modified_date,
                           create_time,
                           end_date
-                   from dmi.dmi_customer_99999999) old
+                   from dim.dim_customer_99999999) old
                       full outer join
                   (select customer_id,
                           name_style,
@@ -135,7 +135,7 @@ with tmp as (select new.customer_id   as new_customer_id,
                    where modified_date >=to_date('{{yesterday_ds}}', 'yyyy-MM-dd')) new
                   on old.customer_id = new.customer_id)
 insert
-into dmi.dmi_customer_99999999
+into dim.dim_customer_99999999
 select COALESCE(new_customer_id, old_customer_id),
        COALESCE(new_name_style, old_name_style),
        COALESCE(new_title, old_title),
@@ -204,7 +204,7 @@ with tmp as (select new.customer_id   as new_customer_id,
                           modified_date,
                           create_time,
                           end_date
-                   from dmi.dmi_customer_99999999) old
+                   from dim.dim_customer_99999999) old
                       full outer join
                   (select customer_id,
                           name_style,
@@ -226,7 +226,7 @@ with tmp as (select new.customer_id   as new_customer_id,
                    where modified_date >=to_date('{{yesterday_ds}}', 'yyyy-MM-dd')) new
                   on old.customer_id = new.customer_id)
 insert
-into dmi.dmi_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
+into dim.dim_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
 select old_customer_id,
        old_name_style,
        old_title,
@@ -247,8 +247,8 @@ from tmp
 where old_customer_id is not null
   and new_customer_id is not null;
 
-insert into olap_db.dmi.dmi_city (city, state_province, country_region)
+insert into olap_db.dim.dim_city (city, state_province, country_region)
 select distinct city, state_province, country_region
 from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
-where not exists(select city from olap_db.dmi.dmi_city old where old.city = new.city and old.state_province = new.state_province)
+where not exists(select city from olap_db.dim.dim_city old where old.city = new.city and old.state_province = new.state_province)
 
