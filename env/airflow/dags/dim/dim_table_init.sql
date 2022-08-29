@@ -143,7 +143,7 @@ create table if not exists dim.dim_product
 -- drop table if exists dim.dim_customer;
 create table if not exists dim.dim_customer
 (
-    customer_id   int          not null,
+    customer_id   int          not null primary key,
     name_style    boolean      not null,
     title         varchar(8)   null,
     first_name    varchar(50)  not null,

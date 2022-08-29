@@ -152,7 +152,7 @@ select COALESCE(new_customer_id, old_customer_id),
        COALESCE(new_modified_date, old_modified_date),
        COALESCE(new_create_time, old_create_time),
        COALESCE(new_end_date, old_end_date)
-from tmp;
+from tmp for update;
 
 -- 过期数据入库
 with tmp as (select new.customer_id   as new_customer_id,
@@ -247,6 +247,7 @@ from tmp
 where old_customer_id is not null
   and new_customer_id is not null;
 
+-- dim_city装载数据
 insert into olap_db.dim.dim_city_{{yesterday_ds_nodash}} (city, state_province, country_region)
 select distinct city, state_province, country_region
 from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
