@@ -4,8 +4,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.hooks.postgres_hook import PostgresHook
 
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
-from airflow.models import Variable
+
 
 your_settings = {
     "yesterday_ds_nodash": "{{ yesterday_ds_nodash }}",
