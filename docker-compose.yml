@@ -30,12 +30,12 @@ services:
   airflow:
     image: gavinup/airflow:2.3.4
     depends_on:
-      postgres:
-        condition: service_started
+      - postgres
     networks:
       - platform_net
     volumes:
       - ./env/airflow/dags:/root/airflow/dags
+      - ./env/airflow/config/airflow.cfg:/root/airflow/airflow.cfg
     ports:
       - "8080:8080"
     expose:
@@ -60,8 +60,7 @@ services:
       - platform_net
     restart: on-failure
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
 
   metabase:
     image: gavinup/metabase:1.41.4
