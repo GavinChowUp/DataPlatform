@@ -44,7 +44,7 @@ docker-compose up -d
 ### Maybe Use Commands
 ```shell
 #
-colima start -m 10 --cpu 8 --mount /Volumes/WCode/DataPlatform/:w # 替换成自己的路径
+colima start -m 10 --cpu 8 --mount /Volumes/Work/Code/DataPlatform/:w # 替换成自己的路径
 
 # 清除容器和镜像
 docker-compose down --volumes --rmi all
