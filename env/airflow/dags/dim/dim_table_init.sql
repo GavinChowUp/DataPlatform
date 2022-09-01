@@ -95,9 +95,19 @@ create table dim.dim_status
     name   varchar(20)
 );
 INSERT INTO dim.dim_status (id, status, name)
-VALUES (1::bigint, 1::integer, 'create order'::varchar(20));
+VALUES (1::bigint, 1::integer, 'In process'::varchar(20));
 INSERT INTO dim.dim_status (id, status, name)
-VALUES (2::bigint, 5::integer, 'ship order'::varchar(20));
+VALUES (2::bigint, 2::integer, 'Approved'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (3::bigint, 3::integer, 'Backordered'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (4::bigint, 4::integer, 'Rejected'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (5::bigint, 5::integer, 'Shipped'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (6::bigint, 6::integer, 'Cancelled'::varchar(20));
+
+
 
 --城市维度表，如果有全量数据的话，只需要导入一次
 -- drop table if exists dim.dim_city;

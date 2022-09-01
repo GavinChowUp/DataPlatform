@@ -71,13 +71,13 @@ with DAG(
     init_dwd_task = PostgresOperator(
         task_id='init_dwd_db',
         postgres_conn_id='olap_db',
-        sql='dwd_db_init.sql',
+        sql='dwd_table_init.sql',
         dag=dag,
     )
     everyday_dwd_task = PostgresOperator(
         task_id='everyday_dwd_db',
         postgres_conn_id='olap_db',
-        sql='dwd_db_init_everyday.sql',
+        sql='dwd_table_init_everyday.sql',
         dag=dag,
     )
     db_migrate_task = PythonOperator(
