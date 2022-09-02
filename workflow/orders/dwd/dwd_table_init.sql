@@ -24,7 +24,6 @@ create table if not exists dwd.dwd_sales_order
     due_date                  date             not null,
     ship_date                 date             null,
     status                    int              not null,
-    online_order_flag         bit(8)           null,
     sales_order_number        varchar(30)      null,
     purchase_order_number     varchar(25)      null,
     account_number            varchar(15)      null,

@@ -5,34 +5,39 @@ with product_base as (select product_id
                            , color
                            , standard_cost
                            , list_price
-                           , size
-                           , weight
-                           , sell_start_date
-                           , sell_end_date
-                           , discontinued_date
-                           , modified_date
-                           , product_category_id
-                           , product_model_id
-                      from ods.ods_product_{{yesterday_ds_nodash}}),
-     category1 as (select product_category_id as product_category1_id,
-                          name                   product_category1_name,
-                          product_category_id
-                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
-     category2 as (select product_category_id as product_category2_id,
-                          name                as product_category2_name,
-                          parent_product_category_id
-                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
-     product_module as (select name                as product_model_name,
-                               catalog_description as product_model_catalog_description,
-                               product_model_id
-                        from ods.ods_product_model_{{yesterday_ds_nodash}}),
-     product_module_product_desc
-         as (select pmpd.product_model_id,
-                    json_agg(json_build_array(trim(pmpd.culture), opd.description)) as product_model_product_desc_culture
-             from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
+                           ,
+    size
+   , weight
+   , sell_start_date
+   , sell_end_date
+   , discontinued_date
+   , modified_date
+   , product_category_id
+   , product_model_id
+from ods.ods_product_{{yesterday_ds_nodash}}),
+    category1 as (
+select product_category_id as product_category1_id,
+    name product_category1_name,
+    product_category_id
+from ods.ods_product_category_{{yesterday_ds_nodash}}),
+    category2 as (
+select product_category_id as product_category2_id,
+    name as product_category2_name,
+    parent_product_category_id
+from ods.ods_product_category_{{yesterday_ds_nodash}}),
+    product_module as (
+select name as product_model_name,
+    catalog_description as product_model_catalog_description,
+    product_model_id
+from ods.ods_product_model_{{yesterday_ds_nodash}}),
+    product_module_product_desc
+    as (
+select pmpd.product_model_id,
+    json_agg(json_build_array(trim (pmpd.culture), opd.description)) as product_model_product_desc_culture
+from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
     left join ods.ods_product_description_{{yesterday_ds_nodash}} opd
-             on pmpd.product_description_id = opd.product_description_id
-             group by pmpd.product_model_id)
+on pmpd.product_description_id = opd.product_description_id
+group by pmpd.product_model_id)
 insert
 into dim.dim_product_{{yesterday_ds_nodash}}
 select product_base.product_id,
@@ -245,11 +250,12 @@ select old_customer_id,
        '{{macros.ds_add(yesterday_ds,-1)}}'
 from tmp
 where old_customer_id is not null
-  and new_customer_id is not null;
+  and new_customer_id is not null for update;
 
 -- dim_city装载数据
 insert into olap_db.dim.dim_city_{{yesterday_ds_nodash}} (city, state_province, country_region)
 select distinct city, state_province, country_region
 from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
-where not exists(select city from olap_db.dim.dim_city old where old.city = new.city and old.state_province = new.state_province)
+where not exists (select city from olap_db.dim.dim_city old where old.city = new.city
+  and old.state_province = new.state_province)
 
