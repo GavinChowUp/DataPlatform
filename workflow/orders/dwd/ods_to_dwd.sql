@@ -1,15 +1,18 @@
 -- dwd_order_detail 每日装载表
-with order_detail as (select sales_order_id,
-                             sales_order_detail_id,
-                             order_date,
-                             status,
-                             customer_id,
-                             order_qty,
-                             product_id,
-                             unit_price,
-                             unit_price_discount,
-                             line_total
-                      from ods.ods_sales_order_{{yesterday_ds_nodash}})
+with order_detail as (select sales_order.sales_order_id,
+                             sales_order.sales_order_detail_id,
+                             sales_order.order_date,
+                             sales_order.status,
+                             sales_order.customer_id,
+                             sales_order.order_qty,
+                             sales_order.product_id,
+                             sales_order.unit_price,
+                             sales_order.unit_price_discount,
+                             sales_order.line_total,
+                             (sales_order.unit_price * sales_order.order_qty - product.standard_cost)  as total_profit
+                      from ods.ods_sales_order_{{yesterday_ds_nodash}} sales_order
+left join ods.ods_product_{{yesterday_ds_nodash}} product
+                       on order_detail.product_id = product.product_id)
 insert
 into dwd.dwd_order_detail_{{yesterday_ds_nodash}}
 select order_detail.sales_order_id,
@@ -21,7 +24,8 @@ select order_detail.sales_order_id,
        order_detail.product_id,
        order_detail.unit_price,
        order_detail.unit_price_discount,
-       order_detail.line_total
+       order_detail.line_total,
+       order_detail.total_profit
 from order_detail;
 
 

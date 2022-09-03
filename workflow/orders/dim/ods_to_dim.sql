@@ -253,9 +253,11 @@ where old_customer_id is not null
   and new_customer_id is not null for update;
 
 -- dim_city装载数据
-insert into olap_db.dim.dim_city_{{yesterday_ds_nodash}} (city, state_province, country_region)
+insert into dim.dim_city (city, state_province, country_region)
 select distinct city, state_province, country_region
-from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
-where not exists (select city from olap_db.dim.dim_city old where old.city = new.city
+from ods.ods_address_{{yesterday_ds_nodash}} new
+where not exists (select city from dim.dim_city old where old.city = new.city
   and old.state_province = new.state_province)
+
+
 

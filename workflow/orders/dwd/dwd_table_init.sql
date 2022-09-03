@@ -1,4 +1,4 @@
--- dwd 层：明细层
+-- dwd 层：明细层，暂时没有考虑数据的去除空值，脱敏等
 CREATE SCHEMA if not exists dwd;
 
 create table if not exists dwd.dwd_order_detail
@@ -12,7 +12,8 @@ create table if not exists dwd.dwd_order_detail
     product_id                int              null,
     unit_price                double precision null,
     unit_price_discount       double precision null,
-    line_total                decimal(38, 6)   null
+    line_total                decimal(38, 6)   null,
+    total_profit              double precision null -- 利润
     );
 
 

@@ -95,9 +95,17 @@ create table dim.dim_status
     name   varchar(20)
 );
 INSERT INTO dim.dim_status (id, status, name)
-VALUES (1::bigint, 1::integer, 'create order'::varchar(20));
+VALUES (1::bigint, 1::integer, 'In process'::varchar(20));
 INSERT INTO dim.dim_status (id, status, name)
-VALUES (2::bigint, 5::integer, 'ship order'::varchar(20));
+VALUES (2::bigint, 2::integer, 'Approved'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (3::bigint, 3::integer, 'Back ordered'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (4::bigint, 4::integer, 'Shipped'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (5::bigint, 5::integer, 'Ship order'::varchar(20));
+INSERT INTO dim.dim_status (id, status, name)
+VALUES (6::bigint, 6::integer, 'Cancelled'::varchar(20));
 
 --城市维度表，如果有全量数据的话，只需要导入一次
 -- drop table if exists dim.dim_city;
@@ -110,6 +118,12 @@ create table if not exists dim.dim_city
     state_province varchar(50) not null,
     country_region varchar(50) not null
 );
+
+insert into dim.dim_city (city, state_province, country_region)
+select distinct city, state_province, country_region
+from ods.ods_address_20220823 new
+where not exists (select city from dim.dim_city old where old.city = new.city
+                                                      and old.state_province = new.state_province);
 
 -- 全量
 -- drop table if exists dim.dim_product;
