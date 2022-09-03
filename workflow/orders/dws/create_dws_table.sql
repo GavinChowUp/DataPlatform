@@ -27,7 +27,7 @@ create table if not exists dws.dws_city_action_daycount
     total_line_total    double precision null      -- 包含折扣产品价格小计
 );
 
--- 订单维度
+-- 订单维度,订单Id 可以看成退化的维度
 create table if not exists dws.dws_order_action_daycount
 (
     sales_order_id              int              not null,
