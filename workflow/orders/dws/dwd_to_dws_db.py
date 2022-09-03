@@ -38,5 +38,6 @@ with DAG(
         postgres_conn_id='olap_db',
         sql='dwd_to_dws.sql',
         dag=dag,
+
     )
     init_dws_task >> everyday_dws_task >> dwd_to_dws_task

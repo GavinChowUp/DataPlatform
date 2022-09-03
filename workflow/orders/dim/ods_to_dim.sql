@@ -5,39 +5,34 @@ with product_base as (select product_id
                            , color
                            , standard_cost
                            , list_price
-                           ,
-    size
-   , weight
-   , sell_start_date
-   , sell_end_date
-   , discontinued_date
-   , modified_date
-   , product_category_id
-   , product_model_id
-from ods.ods_product_{{yesterday_ds_nodash}}),
-    category1 as (
-select product_category_id as product_category1_id,
-    name product_category1_name,
-    product_category_id
-from ods.ods_product_category_{{yesterday_ds_nodash}}),
-    category2 as (
-select product_category_id as product_category2_id,
-    name as product_category2_name,
-    parent_product_category_id
-from ods.ods_product_category_{{yesterday_ds_nodash}}),
-    product_module as (
-select name as product_model_name,
-    catalog_description as product_model_catalog_description,
-    product_model_id
-from ods.ods_product_model_{{yesterday_ds_nodash}}),
-    product_module_product_desc
-    as (
-select pmpd.product_model_id,
-    json_agg(json_build_array(trim (pmpd.culture), opd.description)) as product_model_product_desc_culture
-from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
+                           , size
+                           , weight
+                           , sell_start_date
+                           , sell_end_date
+                           , discontinued_date
+                           , modified_date
+                           , product_category_id
+                           , product_model_id
+                      from ods.ods_product_{{yesterday_ds_nodash}}),
+     category1 as (select product_category_id as product_category1_id,
+                          name                   product_category1_name,
+                          product_category_id
+                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
+     category2 as (select product_category_id as product_category2_id,
+                          name                as product_category2_name,
+                          parent_product_category_id
+                   from ods.ods_product_category_{{yesterday_ds_nodash}}),
+     product_module as (select name                as product_model_name,
+                               catalog_description as product_model_catalog_description,
+                               product_model_id
+                        from ods.ods_product_model_{{yesterday_ds_nodash}}),
+     product_module_product_desc
+         as (select pmpd.product_model_id,
+                    json_agg(json_build_array(trim(pmpd.culture), opd.description)) as product_model_product_desc_culture
+             from ods.ods_product_model_product_desc_{{yesterday_ds_nodash}} pmpd
     left join ods.ods_product_description_{{yesterday_ds_nodash}} opd
-on pmpd.product_description_id = opd.product_description_id
-group by pmpd.product_model_id)
+             on pmpd.product_description_id = opd.product_description_id
+             group by pmpd.product_model_id)
 insert
 into dim.dim_product_{{yesterday_ds_nodash}}
 select product_base.product_id,
@@ -158,6 +153,7 @@ select COALESCE(new_customer_id, old_customer_id),
        COALESCE(new_create_time, old_create_time),
        COALESCE(new_end_date, old_end_date)
 from tmp for update;
+-- 幂等需要修正
 
 -- 过期数据入库
 with tmp as (select new.customer_id   as new_customer_id,
@@ -232,25 +228,25 @@ with tmp as (select new.customer_id   as new_customer_id,
                   on old.customer_id = new.customer_id)
 insert
 into dim.dim_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
-select old_customer_id,
-       old_name_style,
-       old_title,
-       old_first_name,
-       old_middle_name,
-       old_last_name,
-       old_suffix,
-       old_company_name,
-       old_sales_person,
-       old_email_address,
-       old_phone,
-       old_password_hash,
-       old_password_salt,
-       old_modified_date,
-       old_create_time,
-       '{{macros.ds_add(yesterday_ds,-1)}}'
-from tmp
-where old_customer_id is not null
-  and new_customer_id is not null for update;
+(select old_customer_id,
+ old_name_style,
+ old_title,
+ old_first_name,
+ old_middle_name,
+ old_last_name,
+ old_suffix,
+ old_company_name,
+ old_sales_person,
+ old_email_address,
+ old_phone,
+ old_password_hash,
+ old_password_salt,
+ old_modified_date,
+ old_create_time,
+ '{{macros.ds_add(yesterday_ds,-1)}}'
+ from tmp
+ where old_customer_id is not null
+ and new_customer_id is not null);
 
 -- dim_city装载数据
 insert into dim.dim_city (city, state_province, country_region)

@@ -80,7 +80,7 @@ SELECT TO_CHAR(datum, 'yyyymmdd')::INT                                          
            WHEN EXTRACT(ISODOW FROM datum) IN (6, 7) THEN TRUE
            ELSE FALSE
            END                                                                                AS weekend_indr
-FROM (SELECT '2008-01-01'::DATE + SEQUENCE.DAY AS datum
+FROM (SELECT '2005-01-01'::DATE + SEQUENCE.DAY AS datum
       FROM GENERATE_SERIES(0, 29219) AS SEQUENCE (DAY)
       GROUP BY SEQUENCE.DAY) DQ
 ORDER BY 1;

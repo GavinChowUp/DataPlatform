@@ -12,7 +12,7 @@ with order_detail as (select sales_order.sales_order_id,
                              (sales_order.unit_price * sales_order.order_qty - product.standard_cost)  as total_profit
                       from ods.ods_sales_order_{{yesterday_ds_nodash}} sales_order
 left join ods.ods_product_{{yesterday_ds_nodash}} product
-                       on order_detail.product_id = product.product_id)
+                       on sales_order.product_id = product.product_id)
 insert
 into dwd.dwd_order_detail_{{yesterday_ds_nodash}}
 select order_detail.sales_order_id,
@@ -41,6 +41,10 @@ select order_detail.sales_order_id                 as sales_order_id,
        max(order_detail.purchase_order_number)     as purchase_order_number,
        max(order_detail.account_number)            as account_number,
        max(order_detail.customer_id)               as customer_id,
+       max(dc.id)                                  as city_id,
+       max(dc.city)                                as city,
+       max(dc.state_province)                      as state_province,
+       max(dc.country_region)                      as country_region,
        max(order_detail.ship_to_address_id)        as ship_to_address_id,
        max(order_detail.bill_to_address_id)        as bill_to_address_id,
        max(order_detail.ship_method)               as ship_method,
@@ -57,5 +61,12 @@ select order_detail.sales_order_id                 as sales_order_id,
        max(order_detail.modified_date)             as modified_date
 from ods.ods_sales_order_{{yesterday_ds_nodash}} order_detail
          left join ods.ods_product_{{yesterday_ds_nodash}} product
-on order_detail.product_id = product.product_id
+                   on order_detail.product_id = product.product_id
+         left join ods.ods_customer_address_{{yesterday_ds_nodash}} ca
+                   on ca.customer_id = order_detail.customer_id and ca.address_type = 'Main Office'
+         left join ods.ods_address_{{yesterday_ds_nodash}} ad
+                   on ad.address_id = ca.address_id
+         left join dim.dim_city dc
+                   on dc.city = ad.city and dc.state_province = ad.state_province and
+                      dc.country_region = ad.country_region
 group by order_detail.sales_order_id;
