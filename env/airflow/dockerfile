@@ -1,0 +1,14 @@
+FROM debian
+
+RUN apt-get update  \
+    && apt-get upgrade -y  \
+    && apt-get install -y python3.9  \
+    && apt-get install -y python3-pip
+
+ENV AIRFLOW_HOME=~/airflow
+
+RUN pip install apache-airflow-providers-amazon apache-airflow-providers-postgres[amazon] apache-airflow-providers-common-sql "apache-airflow==2.3.4" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.3.4/constraints-3.9.txt"
+
+EXPOSE 8080
+
+CMD airflow standalone

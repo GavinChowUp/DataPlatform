@@ -2,9 +2,6 @@ from datetime import datetime, timedelta
 from airflow import DAG, macros
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
-# this_dag_path = '/opt/airflow/dags/dmi/'
-
-
 with DAG(
         'From_Ods_To_Dwd_DB',
         default_args={

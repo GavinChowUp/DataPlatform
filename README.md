@@ -28,10 +28,6 @@ https://www.metabase.com/learn/getting-started/getting-started
 - docker
 - colima
 - docker-compose
-- postgres
-- flyway
-- airflow
-- metabase
 
 ### Run the app
 
@@ -49,6 +45,11 @@ colima start -m 10 --cpu 8 --mount /Volumes/Work/Code/DataPlatform/:w # 替换�
 # 清除容器和镜像
 docker-compose down --volumes --rmi all
 
+# 只清除容器
+docker rm -f $(docker ps -aq)
+
+# 清除volume
+docker volume rm $(docker volume ls)
 # 
 docker exec -it  server_name  bash
 ```
