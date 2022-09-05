@@ -7,7 +7,7 @@ networks:
 
 services:
   postgres:
-    image: postgres:13
+    image: gavinup/postgres:12
     container_name: postgres
     privileged: true
     environment:

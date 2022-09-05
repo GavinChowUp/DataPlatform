@@ -1,8 +1,7 @@
 # System name
 
-Mysql docker configuration, this include :
+Postgres docker configuration, this include :
 
-- my.cnf
 - init SQL
 
 ## Development

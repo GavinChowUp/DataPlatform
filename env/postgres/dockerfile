@@ -1,0 +1,12 @@
+# 13 天坑
+FROM postgres:12
+
+RUN apt update && \
+    apt install -y python3-pip && \
+    apt install -y postgresql-server-dev-12 && \
+    pip install pgxnclient && \
+    pgxn install postgresql_anonymizer
+
+EXPOSE 5432
+
+CMD ["postgres"]
