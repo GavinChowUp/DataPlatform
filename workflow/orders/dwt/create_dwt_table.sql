@@ -1,4 +1,4 @@
--- dwt 数据主题层：累积汇总,最近7日和最近1月/30day
+-- dwt 数据主题层：从开始那天到统计日的累积行为汇总,一般会有最近7日和最近1月/30day等
 drop schema if exists dwt cascade;
 CREATE SCHEMA if not exists dwt;
 

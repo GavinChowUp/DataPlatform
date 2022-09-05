@@ -40,5 +40,5 @@ create table if not exists dws.dws_order_action_daycount
     total_line_total            double precision null, -- 包含折扣产品价格小计
     modified_date               date             null,
     order_to_ship_time_long     int              null, -- 从创建订单到发货时长
-    order_to_approved_time_long int              null  -- 从创建订单到发货时长
+    order_to_approved_time_long int              null  -- 从创建订单到同意时长
 )
