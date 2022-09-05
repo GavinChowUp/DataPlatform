@@ -2,11 +2,8 @@ from datetime import datetime, timedelta
 from airflow import DAG, macros
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
-# this_dag_path = '/opt/airflow/dags/dmi/'
-
-
 with DAG(
-        'From_Ods_To_Dim_DB',
+        'From_Ods_To_Dwd_DB',
         default_args={
             'owner': 'airflow',
             'depends_on_past': False,
@@ -22,22 +19,22 @@ with DAG(
         start_date=datetime(2022, 8, 23),
         tags=['data_warehouse']
 ) as dag:
-    init_dim_task = PostgresOperator(
-        task_id='init_dim',
+    init_dwd_task = PostgresOperator(
+        task_id='init_dwd',
         postgres_conn_id='olap_db',
-        sql='dim_table_init.sql',
+        sql='dwd_table_init.sql',
         dag=dag,
     )
-    everyday_dim_task = PostgresOperator(
-        task_id='everyday_dim',
+    everyday_dwd_task = PostgresOperator(
+        task_id='everyday_dwd',
         postgres_conn_id='olap_db',
-        sql='dim_table_init_everyday.sql',
+        sql='dwd_table_init_everyday.sql',
         dag=dag,
     )
-    ods_to_dim_task = PostgresOperator(
-        task_id='ods_to_dim',
+    ods_to_dwd_task = PostgresOperator(
+        task_id='ods_to_dwd_db',
         postgres_conn_id='olap_db',
-        sql='ods_to_dim.sql',
+        sql='ods_to_dwd.sql',
         dag=dag,
     )
-    init_dim_task >> everyday_dim_task >> ods_to_dim_task
+    init_dwd_task >> everyday_dwd_task >> ods_to_dwd_task

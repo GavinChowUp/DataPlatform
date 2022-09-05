@@ -153,6 +153,7 @@ select COALESCE(new_customer_id, old_customer_id),
        COALESCE(new_create_time, old_create_time),
        COALESCE(new_end_date, old_end_date)
 from tmp for update;
+-- 幂等需要修正
 
 -- 过期数据入库
 with tmp as (select new.customer_id   as new_customer_id,
@@ -227,29 +228,32 @@ with tmp as (select new.customer_id   as new_customer_id,
                   on old.customer_id = new.customer_id)
 insert
 into dim.dim_customer_{{macros.ds_format(macros.ds_add(yesterday_ds, -1),'%Y-%m-%d','%Y%m%d')}}
-select old_customer_id,
-       old_name_style,
-       old_title,
-       old_first_name,
-       old_middle_name,
-       old_last_name,
-       old_suffix,
-       old_company_name,
-       old_sales_person,
-       old_email_address,
-       old_phone,
-       old_password_hash,
-       old_password_salt,
-       old_modified_date,
-       old_create_time,
-       '{{macros.ds_add(yesterday_ds,-1)}}'
-from tmp
-where old_customer_id is not null
-  and new_customer_id is not null;
+(select old_customer_id,
+ old_name_style,
+ old_title,
+ old_first_name,
+ old_middle_name,
+ old_last_name,
+ old_suffix,
+ old_company_name,
+ old_sales_person,
+ old_email_address,
+ old_phone,
+ old_password_hash,
+ old_password_salt,
+ old_modified_date,
+ old_create_time,
+ '{{macros.ds_add(yesterday_ds,-1)}}'
+ from tmp
+ where old_customer_id is not null
+ and new_customer_id is not null);
 
 -- dim_city装载数据
-insert into olap_db.dim.dim_city_{{yesterday_ds_nodash}} (city, state_province, country_region)
+insert into dim.dim_city (city, state_province, country_region)
 select distinct city, state_province, country_region
-from olap_db.ods.ods_address_{{yesterday_ds_nodash}} new
-where not exists(select city from olap_db.dim.dim_city old where old.city = new.city and old.state_province = new.state_province)
+from ods.ods_address_{{yesterday_ds_nodash}} new
+where not exists (select city from dim.dim_city old where old.city = new.city
+  and old.state_province = new.state_province)
+
+
 

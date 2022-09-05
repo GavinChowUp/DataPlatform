@@ -34,7 +34,7 @@ services:
     networks:
       - platform_net
     volumes:
-      - ./env/airflow/dags:/root/airflow/dags
+      - ./workflow/orders/:/root/airflow/dags
       - ./env/airflow/config/airflow.cfg:/root/airflow/airflow.cfg
     ports:
       - "8080:8080"
