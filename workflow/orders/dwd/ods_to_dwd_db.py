@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG, macros
 from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 with DAG(
         'From_Ods_To_Dwd_DB',
@@ -37,4 +38,11 @@ with DAG(
         sql='ods_to_dwd.sql',
         dag=dag,
     )
-    init_dwd_task >> everyday_dwd_task >> ods_to_dwd_task
+    trigger_dwd_to_dws = TriggerDagRunOperator(
+        task_id='trigger_dwd_to_dws',
+        trigger_dag_id='From_Dwd_To_Dws_DB',
+        execution_date='{{ ds }}',
+        reset_dag_run=True,
+        wait_for_completion=True
+    )
+    init_dwd_task >> everyday_dwd_task >> ods_to_dwd_task >> trigger_dwd_to_dws
