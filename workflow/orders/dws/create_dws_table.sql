@@ -6,6 +6,7 @@ CREATE SCHEMA if not exists dws;
 create table if not exists dws.dws_product_action_daycount
 (
     product_id       int            not null primary key,
+    order_date       date           not null,
     order_count      int            not null, -- 被下单次数
     total_order_qty  int            not null, -- 被下单件数
     total_line_total decimal(38, 6) null,     -- 被下单总价
@@ -15,6 +16,7 @@ create table if not exists dws.dws_product_action_daycount
 -- 城市维度
 create table if not exists dws.dws_city_action_daycount
 (
+    order_date          date             not null,
     city_id             int              not null primary key,
     customer_count      int              not null,
     order_count         int              not null, -- 下单次数
@@ -30,6 +32,7 @@ create table if not exists dws.dws_city_action_daycount
 -- 订单维度,订单Id 可以看成退化的维度
 create table if not exists dws.dws_order_action_daycount
 (
+    order_date                  date             not null,
     sales_order_id              int              not null,
     sub_total                   double precision null, -- 本单销售之和
     tax_amt                     double precision null, -- 本单交税

@@ -26,3 +26,7 @@
 hs_err_pid*
 
 /env/airflow/logs/
+workflow/orders/ads/__pycache__/
+workflow/orders/dwd/__pycache__/
+workflow/orders/dim/__pycache__/
+workflow/orders/ods/__pycache__/
