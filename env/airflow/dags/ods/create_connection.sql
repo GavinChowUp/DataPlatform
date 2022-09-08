@@ -24,3 +24,4 @@ security label for anon on column dwd.dwd_sales_order.account_number
 
 SECURITY LABEL FOR anon ON COLUMN dwd.dwd_sales_order.purchase_order_number
     IS 'MASKED WITH FUNCTION anon.partial(purchase_order_number,2,$$******$$,2)';
+

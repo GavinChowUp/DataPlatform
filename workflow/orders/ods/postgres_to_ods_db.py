@@ -1,11 +1,9 @@
-from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.hooks.postgres_hook import PostgresHook
-
 from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
-from airflow.models import Variable
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from datetime import datetime, timedelta
 
 your_settings = {
     "yesterday_ds_nodash": "{{ yesterday_ds_nodash }}",
@@ -103,4 +101,12 @@ with DAG(
         templates_dict=your_settings
     )
 
-init_ods_task >> everyday_ods_task >> db_migrate_task
+    trigger_ods_to_dwd = TriggerDagRunOperator(
+        task_id='trigger_ods_to_dwd',
+        trigger_dag_id='From_Ods_To_Dwd_DB',
+        execution_date='{{ ds }}',
+        reset_dag_run=True,
+        wait_for_completion=True
+    )
+
+init_ods_task >> everyday_ods_task >> db_migrate_task >> trigger_ods_to_dwd
