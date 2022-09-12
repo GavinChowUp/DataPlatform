@@ -3,7 +3,8 @@
 DataPlatform
 
 # Reference
-flyway: 
+
+flyway:
 
 https://flywaydb.org/documentation/concepts/migrations
 
@@ -31,13 +32,27 @@ https://www.metabase.com/learn/getting-started/getting-started
 
 ### Run the app
 
-cd project folder, then use:
+before init ,if you run before, should delete containers and volumes. ,cd project folder, then use:
 
 ```shell
 docker-compose up -d
 ```
 
+- find the airflow container id , if start failed ,then restart it.
+- use `docker logs -f <airflow_container_id>` tail the log
+- web: localhost:8080
+- return log: you will find the log :
+   ```log
+    standalone | Airflow is ready
+    standalone | Login with username: admin  password: qRENYbzGqwdAgtpr
+   ```
+- use this login
+- use `create_connection.sql` create pg connection.
+- run `first_pipeline.py` in airflow
+- Active daily dags and run  dags `Oltp_To_Ods_DB`
+
 ### Maybe Use Commands
+
 ```shell
 #
 colima start -m 10 --cpu 8 --mount /Volumes/Work/Code/DataPlatform/:w # 替换成自己的路径
@@ -54,8 +69,8 @@ docker volume rm $(docker volume ls)
 docker exec -it  server_name  bash
 ```
 
-
 ### 作业中发现题目的错误以及假设
+
 + unitprice * orderqty - 产品表中的 StandardCost = 利润，不是应该是unitprice * orderqty - 产品表中的 StandardCost* orderqty= 利润
 
 + unitprice * orderqty - 产品表中的 StandardCost = 利润 此公式忽略了折扣
@@ -67,6 +82,7 @@ docker exec -it  server_name  bash
 + 给的所有数据中，创建时间：orderdate、更新时间：modifieddate，是一样的，所以题目要求应该笔误了，发货时间应该取shipdate
 
 ### 作业要求
+
 <aside>
 💡 1. 搭建调度服务和数据库，具体的技术选型不做限制
 
