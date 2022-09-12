@@ -121,7 +121,7 @@ create table if not exists dim.dim_city
 
 insert into dim.dim_city (city, state_province, country_region)
 select distinct city, state_province, country_region
-from ods.ods_address_20220823 new
+from ods.ods_address new
 where not exists (select city from dim.dim_city old where old.city = new.city
                                                       and old.state_province = new.state_province);
 
@@ -198,4 +198,4 @@ select customer_id,
        modified_date,
        '{{yesterday_ds}}',
        '9999-99-99'
-from ods.ods_customer_{{yesterday_ds_nodash}}
+from ods.ods_customer

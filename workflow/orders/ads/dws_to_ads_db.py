@@ -18,20 +18,13 @@ with DAG(
         },
         description='Copy data from dws',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 8, 23),
+        start_date=datetime(2022, 9, 12),
         tags=['data_warehouse']
 ) as dag:
-    init_ads_task = PostgresOperator(
-        task_id='init_ads',
-        postgres_conn_id='olap_db',
-        sql='create_ads_tables.sql',
-        dag=dag,
-    )
     dws_to_dws_task = PostgresOperator(
         task_id='dws_to_ads_db',
         postgres_conn_id='olap_db',
         sql='dws_to_ads.sql',
         dag=dag,
-
     )
-    init_ads_task >> dws_to_dws_task
+    dws_to_dws_task

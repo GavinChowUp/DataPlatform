@@ -3,7 +3,6 @@ VALUES ('olap_db', 'postgres', 'postgres', 'olap_db', 'olap', 'olap', 5432, '', 
 INSERT INTO public.connection (conn_id, conn_type, host, schema, login, password, port, extra, is_encrypted, is_extra_encrypted, description)
 VALUES ('oltp_db', 'postgres', 'postgres', 'oltp_db', 'oltp', 'oltp', 5432, '', false, false, '');
 
-
 ALTER DATABASE olap_db SET session_preload_libraries = 'anon';
 ALTER DATABASE postgres SET session_preload_libraries = 'anon';
 
@@ -19,9 +18,6 @@ select anon.anonymize_database();
 
 SECURITY LABEL FOR anon ON ROLE dy_masking IS 'MASKED';
 
-security label for anon on column dwd.dwd_sales_order.account_number
-    IS 'MASKED WITH FUNCTION anon.partial(account_number,2,$$******$$,2)';
-
-SECURITY LABEL FOR anon ON COLUMN dwd.dwd_sales_order.purchase_order_number
-    IS 'MASKED WITH FUNCTION anon.partial(purchase_order_number,2,$$******$$,2)';
+security label for anon on column ads.ads_orders_ship_long_top10_statistics.sales_order_id
+    IS 'MASKED WITH FUNCTION anon.partial(sales_order_id,2,$$******$$,2)';
 

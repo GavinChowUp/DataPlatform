@@ -1,21 +1,17 @@
 -- 当日下单的各产品的汇总
-insert into dws.dws_product_action_daycount_{{yesterday_ds_nodash}}
+insert into dws.dws_product_action_daycount
 select order_detail.product_id,
        order_detail.order_date                     as order_date,
        count(distinct order_detail.sales_order_id) as order_count,
        sum(order_detail.order_qty)                 as total_order_qty,
        sum(order_detail.line_total)                as total_line_total,
        sum(order_detail.total_profit)              as total_profit
-from dwd.dwd_order_detail_{{yesterday_ds_nodash}} order_detail
-where order_detail.order_date >= to_date('{{ts}}'
-    , 'yyyy-MM-dd')
-  and order_detail.order_date
-    < to_date('{{execution_date}}'
-    , 'yyyy-MM-dd')
+from dwd.dwd_order_detail order_detail
+
 group by order_detail.product_id, order_detail.order_date;
 
 --当日新下单，城市维度汇总
-insert into dws.dws_city_action_daycount_{{yesterday_ds_nodash}}
+insert into dws.dws_city_action_daycount
 select sales_order.city_id,
        count(distinct sales_order.customer_id) as customer_count,
        count(1)                                as order_count,         -- 下单次数
@@ -27,12 +23,7 @@ select sales_order.city_id,
        sum(sales_order.total_standard_cost)    as total_standard_cost, -- 产品成本总和
        sum(sales_order.total_line_total)       as total_line_total,    -- 包含折扣产品价格小计
        sales_order.order_date                  as order_date
-from dwd.dwd_sales_order_{{yesterday_ds_nodash}} sales_order
-where sales_order.order_date >= to_date('{{ts}}'
-    , 'yyyy-MM-dd')
-  and sales_order.order_date
-    < to_date('{{execution_date}}'
-    , 'yyyy-MM-dd')
+from dwd.dwd_sales_order sales_order
 group by sales_order.city_id, sales_order.order_date;
 
 
@@ -51,7 +42,7 @@ insert into dws.dws_order_action_daycount
             (case when ds.id = 2 then date_cmp(sales_order.modified_date, sales_order.order_date) else 0 end)
                                             as order_to_approved_time_long,
             sales_order.order_date          as order_date
-     from dwd.dwd_sales_order_{{yesterday_ds_nodash}} sales_order
+     from dwd.dwd_sales_order sales_order
          left join dim.dim_status ds
      on ds.status = sales_order.status)
 ;
@@ -100,7 +91,7 @@ with old_new as (select doad.sales_order_id                      as old_sales_or
                                        then date_cmp(sales_order.modified_date, sales_order.order_date)
                                    else 0 end)
                                                               as order_to_approved_time_long
-                       from dwd.dwd_sales_order_{{yesterday_ds_nodash}} sales_order
+                       from dwd.dwd_sales_order sales_order
                                 left join dim.dim_status ds
                        on ds.status = sales_order.status) order_action
                       on doad.sales_order_id = order_action.sales_order_id)
@@ -175,7 +166,7 @@ with old_new as (select doad.sales_order_id                      as old_sales_or
                                        then date_cmp(sales_order.modified_date, sales_order.order_date)
                                    else 0 end)
                                                               as order_to_approved_time_long
-                       from dwd.dwd_sales_order_{{yesterday_ds_nodash}} sales_order
+                       from dwd.dwd_sales_order sales_order
                                 left join dim.dim_status ds
                        on ds.status = sales_order.status) order_action
                       on doad.sales_order_id = order_action.sales_order_id)

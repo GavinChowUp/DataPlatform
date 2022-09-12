@@ -16,7 +16,6 @@ create table if not exists dws.dws_product_action_daycount
 -- 城市维度
 create table if not exists dws.dws_city_action_daycount
 (
-    order_date          date             not null,
     city_id             int              not null primary key,
     customer_count      int              not null,
     order_count         int              not null, -- 下单次数
@@ -26,13 +25,13 @@ create table if not exists dws.dws_city_action_daycount
     total_due           double precision null,     -- 总付款
     total_profit        double precision null,     -- 利润总和
     total_standard_cost double precision null,     -- 产品成本总和
-    total_line_total    double precision null      -- 包含折扣产品价格小计
+    total_line_total    double precision null ,     -- 包含折扣产品价格小计
+    order_date          date             not null
 );
 
 -- 订单维度,订单Id 可以看成退化的维度
 create table if not exists dws.dws_order_action_daycount
 (
-    order_date                  date             not null,
     sales_order_id              int              not null,
     sub_total                   double precision null, -- 本单销售之和
     tax_amt                     double precision null, -- 本单交税
@@ -43,5 +42,6 @@ create table if not exists dws.dws_order_action_daycount
     total_line_total            double precision null, -- 包含折扣产品价格小计
     modified_date               date             null,
     order_to_ship_time_long     int              null, -- 从创建订单到发货时长
-    order_to_approved_time_long int              null  -- 从创建订单到同意时长
+    order_to_approved_time_long int              null , -- 从创建订单到同意时长
+    order_date                  date             not null
 )

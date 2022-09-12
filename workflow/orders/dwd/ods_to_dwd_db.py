@@ -14,18 +14,12 @@ with DAG(
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },
-        # template_searchpath=[this_dag_path],
         description='Copy data from ods',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 8, 23),
+        start_date=datetime(2022, 9, 12),
         tags=['data_warehouse']
 ) as dag:
-    init_dwd_task = PostgresOperator(
-        task_id='init_dwd',
-        postgres_conn_id='olap_db',
-        sql='dwd_table_init.sql',
-        dag=dag,
-    )
+
     everyday_dwd_task = PostgresOperator(
         task_id='everyday_dwd',
         postgres_conn_id='olap_db',
@@ -38,6 +32,7 @@ with DAG(
         sql='ods_to_dwd.sql',
         dag=dag,
     )
+
     trigger_dwd_to_dws = TriggerDagRunOperator(
         task_id='trigger_dwd_to_dws',
         trigger_dag_id='From_Dwd_To_Dws_DB',
@@ -45,4 +40,5 @@ with DAG(
         reset_dag_run=True,
         wait_for_completion=True
     )
-    init_dwd_task >> everyday_dwd_task >> ods_to_dwd_task >> trigger_dwd_to_dws
+
+    everyday_dwd_task >> ods_to_dwd_task >> trigger_dwd_to_dws

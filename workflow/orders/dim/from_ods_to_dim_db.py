@@ -19,15 +19,10 @@ with DAG(
         # template_searchpath=[this_dag_path],
         description='Copy data from ods',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 8, 23),
+        start_date=datetime(2022, 9, 12),
         tags=['data_warehouse']
 ) as dag:
-    init_dim_task = PostgresOperator(
-        task_id='init_dim',
-        postgres_conn_id='olap_db',
-        sql='dim_table_init.sql',
-        dag=dag,
-    )
+
     everyday_dim_task = PostgresOperator(
         task_id='everyday_dim',
         postgres_conn_id='olap_db',
@@ -40,4 +35,4 @@ with DAG(
         sql='ods_to_dim.sql',
         dag=dag,
     )
-    init_dim_task >> everyday_dim_task >> ods_to_dim_task
+    everyday_dim_task >> ods_to_dim_task

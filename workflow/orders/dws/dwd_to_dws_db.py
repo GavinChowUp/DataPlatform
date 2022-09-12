@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG, macros
 from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # this_dag_path = '/opt/airflow/dags/dmi/'
 
@@ -18,15 +19,10 @@ with DAG(
         },
         description='Copy data from dwd',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 8, 23),
+        start_date=datetime(2022, 9, 12),
         tags=['data_warehouse']
 ) as dag:
-    init_dws_task = PostgresOperator(
-        task_id='init_dws',
-        postgres_conn_id='olap_db',
-        sql='create_dws_table.sql',
-        dag=dag,
-    )
+
     everyday_dws_task = PostgresOperator(
         task_id='everyday_dws',
         postgres_conn_id='olap_db',
@@ -38,6 +34,14 @@ with DAG(
         postgres_conn_id='olap_db',
         sql='dwd_to_dws.sql',
         dag=dag,
-
     )
-    init_dws_task >> everyday_dws_task >> dwd_to_dws_task
+
+    trigger_dws_to_ads = TriggerDagRunOperator(
+        task_id='trigger_dws_to_ads',
+        trigger_dag_id='From_Dws_To_Ads_DB',
+        execution_date='{{ ds }}',
+        reset_dag_run=True,
+        wait_for_completion=True
+    )
+
+    everyday_dws_task >> dwd_to_dws_task >> trigger_dws_to_ads

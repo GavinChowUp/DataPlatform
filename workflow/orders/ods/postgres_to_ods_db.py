@@ -51,21 +51,6 @@ def oltp_to_ods(**context):
     cursor.execute("SELECT * FROM oltp.sales_order;")
     dest.insert_rows(table=schema_name + ".ods_sales_order" + table_suffix, rows=cursor)
 
-    # dest_cursor.execute("SELECT MAX(product_id) FROM ods.ods_product;")
-    # product_id = dest_cursor.fetchone()[0]
-    # if product_id is None:
-    #     product_id = 0
-    # cursor.execute("SELECT * FROM oltp.product WHERE product_id > %s", [product_id])
-    # dest.insert_rows(table="ods.ods_product", rows=cursor)
-
-    # dest_cursor.execute("SELECT MAX(order_id) FROM orders;")
-    # order_id = dest_cursor.fetchone()[0]
-    # if order_id is None:
-    #     order_id = 0
-    # cursor.execute("SELECT * FROM orders WHERE order_id > %s", [order_id])
-    # dest.insert_rows(table="orders", rows=cursor)
-
-
 with DAG(
         'Oltp_To_Ods_DB',
         default_args={
@@ -79,15 +64,10 @@ with DAG(
         },
         description='Copy data from postgres',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 8, 21),
+        start_date=datetime(2022, 9, 12),
         tags=['data_warehouse']
 ) as dag:
-    init_ods_task = PostgresOperator(
-        task_id='init_ods_db',
-        postgres_conn_id='olap_db',
-        sql='ods_db_init.sql',
-        dag=dag,
-    )
+
     everyday_ods_task = PostgresOperator(
         task_id='everyday_ods_db',
         postgres_conn_id='olap_db',
@@ -109,4 +89,4 @@ with DAG(
         wait_for_completion=True
     )
 
-init_ods_task >> everyday_ods_task >> db_migrate_task >> trigger_ods_to_dwd
+everyday_ods_task >> db_migrate_task >> trigger_ods_to_dwd
