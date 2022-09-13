@@ -15,28 +15,30 @@ group by month_name, ca.city_id, dc.city;
 insert into ads.ads_product_week_top10_statistics
 select week_of_year, top_num, dt, product_id, product_name, total_profit
 from (select week_of_year
-           , row_number() over (partition by product_id order by total_profit) as top_num, dt
+           , row_number() over (partition by order_date order by total_profit DESC) as top_num
+           , dt
            , product_id
            , product_name
            , total_profit
       from (select to_char(pa.order_date, 'YYYY-WW') as week_of_year,
                    CURRENT_DATE                      as dt,
                    pa.product_id                     as product_id,
+                   pa.order_date                     as order_date,
                    dp.name                           as product_name,
                    sum(pa.total_profit)              as total_profit
             from dws.dws_product_action_daycount pa
                      left join dim.dim_product dp on pa.product_id = dp.product_id
 
-            group by week_of_year, pa.product_id, dp.name) as pd) as tn
+            group by week_of_year, pa.product_id, dp.name) as pd) as new
 where top_num <= 10;
 
+
 insert into ads.ads_orders_ship_long_top10_statistics
-select CURRENT_DATE,
-       oa.sales_order_id          as sales_order_id,
-       oa.order_to_ship_time_long as order_to_ship_time_long
-from dws.dws_order_action_daycount oa
-order by oa.order_to_ship_time_long limit 10;
-
-
-
-
+select dt, order_date, sales_order_id, order_to_ship_time_long, top_num
+from (select *, row_number() over (partition by order_date order by order_to_ship_time_long DESC) as top_num
+      from (select CURRENT_DATE               as dt,
+                   oa.order_date              as order_date,
+                   oa.sales_order_id          as sales_order_id,
+                   oa.order_to_ship_time_long as order_to_ship_time_long
+            from dws.dws_order_action_daycount oa) as o) as top
+where top_num <= 10;
