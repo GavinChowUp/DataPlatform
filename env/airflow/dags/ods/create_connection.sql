@@ -6,13 +6,14 @@ VALUES ('oltp_db', 'postgres', 'postgres', 'oltp_db', 'oltp', 'oltp', 5432, '', 
 ALTER DATABASE olap_db SET session_preload_libraries = 'anon';
 ALTER DATABASE postgres SET session_preload_libraries = 'anon';
 
+select anon.anonymize_database();
 CREATE EXTENSION IF NOT EXISTS anon CASCADE;
 SELECT anon.init();
 SELECT anon.start_dynamic_masking();
 
 CREATE ROLE dy_masking LOGIN PASSWORD 'dy_masking';
-GRANT SELECT ON table dwd.dwd_sales_order TO dy_masking;
-GRANT USAGE ON schema dwd TO dy_masking;
+GRANT SELECT ON table ads.ads_orders_ship_long_top10_statistics TO dy_masking;
+GRANT USAGE ON schema ads TO dy_masking;
 
 select anon.anonymize_database();
 

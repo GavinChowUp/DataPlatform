@@ -1,15 +1,28 @@
 -- 目标： 每月，不同城市， 销售额，利润额，销售额环比
 insert into ads.ads_city_customer_month_statistics
-select to_char(ca.order_date, 'YYYY-MM') as month_name,
-       CURRENT_DATE                      as dt,
-       ca.city_id                        as city_id,
-       dc.city                           as city_name,
-       sum(sub_total)                    as total_due,
-       sum(total_profit)                 as total_profit
-from dws.dws_city_action_daycount ca
-         left join dim.dim_city dc
-                   on ca.city_id = dc.id
-group by month_name, ca.city_id, dc.city;
+with need_update as (select to_char(new.order_date, 'YYYY-MM') as month_name,
+                            CURRENT_DATE                       as dt,
+                            new.city_id                        as city_id,
+                            dc.city                            as city_name,
+                            sum(sub_total)                     as total_due,
+                            sum(total_profit)                  as total_profit
+                     from dws.dws_city_action_daycount new
+                              left join dim.dim_city dc
+                                        on new.city_id = dc.id
+                     where not exists(select dt from ads.ads_city_customer_month_statistics old where old.city_id = new.city_id)
+                     group by month_name, new.city_id, dc.city)
+
+select *,
+       case
+           when need_update.total_profit > 0 then
+                   (need_update.total_profit - lag(cast(need_update.total_profit as int), 1, cast(need_update.total_profit as int)) over ()) /
+                   lag(cast(need_update.total_profit as int), 1, 1) over ()
+           when need_update.total_profit < 0 then
+                   (need_update.total_profit + lag(cast(need_update.total_profit as int), 1, cast(need_update.total_profit as int)) over ()) /
+                   lag(cast(need_update.total_profit as int), 1, 1) over ()
+           end as sales_growth_rate
+from need_update;
+
 
 -- 目标： 每周,产品，周利润，top10
 insert into ads.ads_product_week_top10_statistics
