@@ -62,7 +62,7 @@ with DAG(
         },
         description='Copy data from postgres',
         schedule_interval=None,
-        start_date=datetime(2022, 9, 12),
+        start_date=datetime(2022, 10, 7),
         tags=['data_warehouse']
 ) as dag:
     init_ods_task = PostgresOperator(

@@ -44,7 +44,7 @@ docker-compose up -d
 - return log: you will find the log :
    ```log
     standalone | Airflow is ready
-    standalone | Login with username: admin  password: qRENYbzGqwdAgtpr
+    standalone | Login with username: admin  password: z8y7btyXfhBM2qHZ
    ```
 - use this login
 - use `create_connection.sql` create pg connection.

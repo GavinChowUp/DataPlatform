@@ -18,7 +18,7 @@ with DAG(
         },
         description='Copy data from dws',
         schedule_interval=timedelta(days=1),
-        start_date=datetime(2022, 9, 12),
+        start_date=datetime(2022, 10, 8),
         tags=['data_warehouse']
 ) as dag:
     dws_to_dws_task = PostgresOperator(
